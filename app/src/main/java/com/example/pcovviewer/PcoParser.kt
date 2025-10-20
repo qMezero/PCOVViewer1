@@ -9,7 +9,9 @@ object PcoParser {
         val y: Float,
         val z: Float?,
         val attributes: Map<String, String> = emptyMap()
-    )
+    ) {
+        val codeInfo: CodeInfo = CodeInfo.parse(code)
+    }
 
     fun parse(rawContent: String): List<PcoPoint> {
         val points = mutableListOf<PcoPoint>()

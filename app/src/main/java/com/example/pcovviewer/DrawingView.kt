@@ -40,54 +40,17 @@ class DrawingView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (points.isEmpty()) return
+        val geometry = GeometryBuilder.build(points, width.toFloat(), height.toFloat()) ?: return
 
-        val minX = points.minOf { it.x }
-        val maxX = points.maxOf { it.x }
-        val minY = points.minOf { it.y }
-        val maxY = points.maxOf { it.y }
-
-        val spanX = maxX - minX
-        val spanY = maxY - minY
-
-        val scaleX = if (spanX == 0f) 1f else width.toFloat() / spanX
-        val scaleY = if (spanY == 0f) 1f else height.toFloat() / spanY
-        val scale = minOf(scaleX, scaleY)
-
-        val offsetX = (width.toFloat() - spanX * scale) / 2f
-        val offsetY = (height.toFloat() - spanY * scale) / 2f
-
-        val scaledPoints = points.map {
-            val x = offsetX + (it.x - minX) * scale
-            val y = offsetY + (maxY - it.y) * scale
-            it.copy(x = x, y = y)
+        geometry.connections.forEach { (start, end) ->
+            canvas.drawLine(start.x, start.y, end.x, end.y, linePaint)
         }
 
-        for (i in scaledPoints.indices) {
-            val point = scaledPoints[i]
-            val code = point.code
+        geometry.points.forEach { scaledPoint ->
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 4f, pointPaint)
 
-            if (code.contains("..")) {
-                val parts = code.split("..")
-                val target = parts.getOrNull(1)
-
-                if (target.isNullOrEmpty() && i > 0) {
-                    val prev = scaledPoints[i - 1]
-                    canvas.drawLine(prev.x, prev.y, point.x, point.y, linePaint)
-                } else if (!target.isNullOrEmpty()) {
-                    val targetPoint = scaledPoints.find { it.number.toString() == target }
-                    if (targetPoint != null) {
-                        canvas.drawLine(point.x, point.y, targetPoint.x, targetPoint.y, linePaint)
-                    }
-                }
-            }
-        }
-
-        for (point in scaledPoints) {
-            canvas.drawCircle(point.x, point.y, 4f, pointPaint)
-
-            val label = "${point.number}\n${point.code}"
-            drawMultilineText(label, point.x + 6f, point.y - 6f, textPaint, canvas)
+            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
+            drawMultilineText(label, scaledPoint.x + 6f, scaledPoint.y - 6f, textPaint, canvas)
         }
     }
 

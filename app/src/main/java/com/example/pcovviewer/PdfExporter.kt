@@ -25,6 +25,16 @@ object PdfExporter {
         return try {
             val pdfDocument = android.graphics.pdf.PdfDocument()
             val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create()
+
+            val geometry = GeometryBuilder.build(
+                points = points,
+                width = pageInfo.pageWidth.toFloat(),
+                height = pageInfo.pageHeight.toFloat()
+            ) ?: run {
+                pdfDocument.close()
+                return null
+            }
+
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
@@ -39,6 +49,8 @@ object PdfExporter {
                 color = Color.DKGRAY
                 textSize = 10f
                 isAntiAlias = true
+                isLinearText = true
+                isSubpixelText = true
             }
 
             val linePaint = Paint().apply {
@@ -47,32 +59,8 @@ object PdfExporter {
                 isAntiAlias = true
             }
 
-            val minX = points.minOf { it.x }
-            val maxX = points.maxOf { it.x }
-            val minY = points.minOf { it.y }
-            val maxY = points.maxOf { it.y }
-
-            val spanX = maxX - minX
-            val spanY = maxY - minY
-
-            val pageWidth = pageInfo.pageWidth.toFloat()
-            val pageHeight = pageInfo.pageHeight.toFloat()
-
-            val scaleX = if (spanX == 0f) 1f else pageWidth / spanX
-            val scaleY = if (spanY == 0f) 1f else pageHeight / spanY
-            val scale = minOf(scaleX, scaleY)
-
-            val offsetX = (pageWidth - spanX * scale) / 2f
-            val offsetY = (pageHeight - spanY * scale) / 2f
-
-            val scaledPoints = points.map { point ->
-                val scaledX = offsetX + (point.x - minX) * scale
-                val scaledY = offsetY + (maxY - point.y) * scale
-                ScaledPoint(point, scaledX, scaledY)
-            }
-
-            drawConnections(canvas, scaledPoints, linePaint)
-            drawPoints(canvas, scaledPoints, pointPaint, textPaint)
+            drawConnections(canvas, geometry.connections, linePaint)
+            drawPoints(canvas, geometry.points, pointPaint, textPaint)
 
             pdfDocument.finishPage(page)
             FileOutputStream(file).use { output ->
@@ -118,44 +106,11 @@ object PdfExporter {
 
     private fun drawConnections(
         canvas: Canvas,
-        points: List<ScaledPoint>,
+        connections: List<Pair<ScaledPoint, ScaledPoint>>,
         paint: Paint
     ) {
-        for (i in points.indices) {
-            val scaledPoint = points[i]
-            val code = scaledPoint.point.code
-            if (!code.contains("..")) {
-                continue
-            }
-
-            val parts = code.split("..")
-            val target = parts.getOrNull(1)?.trim().orEmpty()
-
-            when {
-                target.isEmpty() && i > 0 -> {
-                    val previous = points[i - 1]
-                    canvas.drawLine(
-                        previous.x,
-                        previous.y,
-                        scaledPoint.x,
-                        scaledPoint.y,
-                        paint
-                    )
-                }
-
-                target.isNotEmpty() -> {
-                    val targetPoint = points.find { it.point.number.toString() == target }
-                    if (targetPoint != null) {
-                        canvas.drawLine(
-                            scaledPoint.x,
-                            scaledPoint.y,
-                            targetPoint.x,
-                            targetPoint.y,
-                            paint
-                        )
-                    }
-                }
-            }
+        connections.forEach { (start, end) ->
+            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
         }
     }
 
@@ -168,7 +123,7 @@ object PdfExporter {
         points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
 
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.code}"
+            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
             val lines = label.split("\n")
             lines.forEachIndexed { index, line ->
                 canvas.drawText(
@@ -180,10 +135,4 @@ object PdfExporter {
             }
         }
     }
-
-    private data class ScaledPoint(
-        val point: PcoPoint,
-        val x: Float,
-        val y: Float
-    )
 }
