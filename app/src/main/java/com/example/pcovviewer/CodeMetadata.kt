@@ -21,7 +21,8 @@ data class CodeInfo(
             val parts = trimmed.split("..", limit = 2)
             val baseCode = parts.firstOrNull().orEmpty().trim().trimEnd('.')
 
-            if (parts.size == 1) {
+            val hasSuffix = parts.size > 1
+            if (!hasSuffix) {
                 return CodeInfo(baseCode = baseCode, connectsToPrevious = false, connectionTargets = emptyList())
             }
 
@@ -35,7 +36,7 @@ data class CodeInfo(
                 .mapNotNull { it.trim().toIntOrNull() }
                 .distinct()
 
-            return CodeInfo(baseCode = baseCode, connectsToPrevious = false, connectionTargets = targets)
+            return CodeInfo(baseCode = baseCode, connectsToPrevious = true, connectionTargets = targets)
         }
     }
 }
