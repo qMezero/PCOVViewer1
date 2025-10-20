@@ -8,7 +8,6 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.example.pcovviewer.ui.theme.DrawingView
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,7 +16,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savePdfButton: Button
     private lateinit var openPdfButton: Button
 
-    private var lastPdfPath: String? = null
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
 
     // Регистрируем обработчик выбора файла
@@ -50,15 +48,24 @@ class MainActivity : AppCompatActivity() {
             if (loadedPoints.isEmpty()) {
                 Toast.makeText(this, "Нет данных для сохранения", Toast.LENGTH_SHORT).show()
             } else {
-                val path = PdfExporter.exportToPdf(this, loadedPoints)
-                lastPdfPath = path
-                Toast.makeText(this, "PDF сохранён: $path", Toast.LENGTH_LONG).show()
+                val file = PdfExporter.exportToPdf(this, loadedPoints)
+                if (file != null) {
+                    Toast.makeText(
+                        this,
+                        "PDF сохранён: ${file.absolutePath}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(this, "Не удалось сохранить PDF", Toast.LENGTH_LONG).show()
+                }
             }
         }
 
         // Открытие последнего PDF
         openPdfButton.setOnClickListener {
-            openLastPdf()
+            if (!PdfExporter.openLastPdf(this)) {
+                Toast.makeText(this, "PDF ещё не создан", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -86,17 +93,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openLastPdf() {
-        lastPdfPath?.let {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(Uri.parse(it), "application/pdf")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, "Не удалось открыть PDF", Toast.LENGTH_SHORT).show()
-            }
-        } ?: Toast.makeText(this, "PDF ещё не создан", Toast.LENGTH_SHORT).show()
-    }
 }
