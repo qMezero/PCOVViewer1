@@ -44,7 +44,17 @@ data class CodeInfo(
  * Contains domain rules that depend on decoded codes, such as visibility.
  */
 object CodeRules {
-    private val hiddenBaseCodes: Set<String> = setOf("701", "702", "703", "704", "705", "706")
+    private val hiddenBaseCodes: Set<String> = setOf(
+        "70",
+        "73",
+        "701",
+        "702",
+        "703",
+        "704",
+        "705",
+        "706",
+        "731"
+    )
 
     fun isHidden(point: PcoParser.PcoPoint): Boolean = isHidden(point.codeInfo.baseCode)
 
