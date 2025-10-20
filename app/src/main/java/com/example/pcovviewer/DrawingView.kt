@@ -2,8 +2,6 @@ package com.example.pcovviewer
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -16,28 +14,18 @@ class DrawingView @JvmOverloads constructor(
 
     private var points: List<PcoParser.PcoPoint> = emptyList()
 
-    private val pointPaint = Paint().apply {
-        color = Color.RED
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
+    private val pointPaint = DrawingStyle.createPointPaint()
 
-    private val linePaint = Paint().apply {
-        color = Color.BLUE
-        isAntiAlias = true
-    }
+    private val linePaint = DrawingStyle.createLinePaint()
 
-    private val textPaint = Paint().apply {
-        color = Color.DKGRAY
-        isAntiAlias = true
-    }
+    private val textPaint = DrawingStyle.createTextPaint()
 
-    private val basePointRadius = 4f
-    private val baseStrokeWidth = 2f
-    private val baseTextSize = 18f
-    private val baseLabelOffsetX = 6f
-    private val baseLabelOffsetY = 6f
-    private val baseLineSpacing = 2f
+    private val basePointRadius = DrawingStyle.BASE_POINT_RADIUS
+    private val baseStrokeWidth = DrawingStyle.BASE_STROKE_WIDTH
+    private val baseTextSize = DrawingStyle.BASE_TEXT_SIZE
+    private val baseLabelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X
+    private val baseLabelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y
+    private val baseLineSpacing = DrawingStyle.BASE_LINE_SPACING
 
     private var scaleFactor = 1f
     private var panX = 0f
@@ -98,32 +86,21 @@ class DrawingView @JvmOverloads constructor(
         geometry.points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
 
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
-            drawMultilineText(
-                label,
-                scaledPoint.x + labelOffsetX,
-                scaledPoint.y - labelOffsetY,
-                textPaint,
-                lineSpacing,
-                canvas
+            val label = PointLabelFormatter.buildLabel(
+                scaledPoint.point,
+                geometry.connectionsByPointNumber[scaledPoint.point.number].orEmpty()
+            )
+            DrawingStyle.drawMultilineLabel(
+                canvas = canvas,
+                text = label,
+                x = scaledPoint.x + labelOffsetX,
+                y = scaledPoint.y - labelOffsetY,
+                paint = textPaint,
+                lineSpacing = lineSpacing
             )
         }
 
         canvas.restore()
-    }
-
-    private fun drawMultilineText(
-        text: String,
-        x: Float,
-        y: Float,
-        paint: Paint,
-        lineSpacing: Float,
-        canvas: Canvas
-    ) {
-        val lines = text.split("\n")
-        for ((index, line) in lines.withIndex()) {
-            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
-        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

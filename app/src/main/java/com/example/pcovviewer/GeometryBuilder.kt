@@ -17,7 +17,8 @@ data class ScaledPoint(
  */
 data class Geometry(
     val points: List<ScaledPoint>,
-    val connections: List<Pair<ScaledPoint, ScaledPoint>>
+    val connections: List<Pair<ScaledPoint, ScaledPoint>>,
+    val connectionsByPointNumber: Map<Int, List<Int>>
 )
 
 object GeometryBuilder {
@@ -54,8 +55,13 @@ object GeometryBuilder {
         }
 
         val connections = buildConnections(scaledPoints)
+        val connectionsByPointNumber = buildConnectionMap(connections)
 
-        return Geometry(points = scaledPoints, connections = connections)
+        return Geometry(
+            points = scaledPoints,
+            connections = connections,
+            connectionsByPointNumber = connectionsByPointNumber
+        )
     }
 
     private fun buildConnections(points: List<ScaledPoint>): List<Pair<ScaledPoint, ScaledPoint>> {
@@ -95,5 +101,26 @@ object GeometryBuilder {
         }
 
         return result
+    }
+
+    private fun buildConnectionMap(
+        connections: List<Pair<ScaledPoint, ScaledPoint>>
+    ): Map<Int, List<Int>> {
+        if (connections.isEmpty()) return emptyMap()
+
+        val adjacency = mutableMapOf<Int, MutableSet<Int>>()
+
+        fun add(from: ScaledPoint, to: ScaledPoint) {
+            adjacency.getOrPut(from.point.number) { mutableSetOf() }.add(to.point.number)
+        }
+
+        connections.forEach { (start, end) ->
+            add(start, end)
+            add(end, start)
+        }
+
+        return adjacency.mapValues { (_, neighbours) ->
+            neighbours.toList().sorted()
+        }
     }
 }
