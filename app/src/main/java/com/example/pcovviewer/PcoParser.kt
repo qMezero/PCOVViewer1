@@ -1,118 +1,83 @@
-package com.example.pcovviewer.ui.theme
+package com.example.pcovviewer
 
-import android.content.Context
-import android.graphics.*
-import android.util.AttributeSet
-import android.view.View
-import com.example.pcovviewer.PcoParser
+object PcoParser {
 
-class DrawingView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null
-) : View(context, attrs) {
+    data class PcoPoint(
+        val number: Int,
+        val code: String,
+        val x: Float,
+        val y: Float,
+        val z: Float?,
+        val attributes: Map<String, String> = emptyMap()
+    )
 
-    private var points: List<PcoParser.PcoPoint> = emptyList()
+    fun parse(rawContent: String): List<PcoPoint> {
+        val points = mutableListOf<PcoPoint>()
 
-    // Кисть для точек (красная)
-    private val pointPaint = Paint().apply {
-        color = Color.RED
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
+        var currentNumber: Int? = null
+        var currentCode: String? = null
+        var currentX: Float? = null
+        var currentY: Float? = null
+        var currentZ: Float? = null
+        val currentAttributes = mutableMapOf<String, String>()
 
-    // Кисть для линий (синяя)
-    private val linePaint = Paint().apply {
-        color = Color.BLUE
-        strokeWidth = 2f
-        isAntiAlias = true
-    }
+        fun flushPoint() {
+            val number = currentNumber
+            val x = currentX
+            val y = currentY
+            if (number != null && x != null && y != null) {
+                points += PcoPoint(
+                    number = number,
+                    code = currentCode.orEmpty(),
+                    x = x,
+                    y = y,
+                    z = currentZ,
+                    attributes = currentAttributes.toMap()
+                )
+            }
 
-    // Кисть для подписей
-    private val textPaint = Paint().apply {
-        color = Color.DKGRAY
-        textSize = 18f
-        isAntiAlias = true
-    }
-
-    // Устанавливаем точки
-    fun setData(points: List<PcoParser.PcoPoint>) {
-        this.points = points
-        invalidate()
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-
-        if (points.isEmpty()) return
-
-        // Нормализуем координаты под размер экрана
-        val minX = points.minOf { it.x }
-        val maxX = points.maxOf { it.x }
-        val minY = points.minOf { it.y }
-        val maxY = points.maxOf { it.y }
-
-        val scaleX = width / (maxX - minX)
-        val scaleY = height / (maxY - minY)
-        val scale = minOf(scaleX, scaleY)
-
-        val offsetX = (width - (maxX - minX) * scale) / 2
-        val offsetY = (height - (maxY - minY) * scale) / 2
-
-        val scaledPoints = points.map {
-            val x = offsetX + (it.x - minX) * scale
-            val y = offsetY + (maxY - it.y) * scale // инвертируем ось Y
-            it.copy(x = x, y = y)
+            currentNumber = null
+            currentCode = null
+            currentX = null
+            currentY = null
+            currentZ = null
+            currentAttributes.clear()
         }
 
-        // --- РИСОВАНИЕ ЛИНИЙ ---
-        for (i in scaledPoints.indices) {
-            val point = scaledPoints[i]
-            val code = point.code
-
-            if (code.contains("..")) {
-                val parts = code.split("..")
-                val target = parts.getOrNull(1)
-
-                // 301.. → соединяем с предыдущей
-                if (target.isNullOrEmpty() && i > 0) {
-                    val prev = scaledPoints[i - 1]
-                    canvas.drawLine(
-                        prev.x.toFloat(),
-                        prev.y.toFloat(),
-                        point.x.toFloat(),
-                        point.y.toFloat(),
-                        linePaint
-                    )
+        rawContent.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .forEach { line ->
+                val separatorIndex = line.indexOf('=')
+                if (separatorIndex <= 0) {
+                    return@forEach
                 }
-                // 301..12 → соединяем с точкой 12
-                else if (!target.isNullOrEmpty()) {
-                    val targetPoint = scaledPoints.find { it.number.toString() == target }
-                    if (targetPoint != null) {
-                        canvas.drawLine(
-                            point.x.toFloat(),
-                            point.y.toFloat(),
-                            targetPoint.x.toFloat(),
-                            targetPoint.y.toFloat(),
-                            linePaint
-                        )
+
+                val key = line.substring(0, separatorIndex).trim()
+                val value = line.substring(separatorIndex + 1).trim()
+
+                if (key.isEmpty() || value.isEmpty()) {
+                    return@forEach
+                }
+
+                if (key == "5") {
+                    flushPoint()
+                    currentNumber = value.toIntOrNull()
+                } else {
+                    currentAttributes[key] = value
+                    when (key) {
+                        "4" -> currentCode = value
+                        "37" -> currentX = value.asFloat()
+                        "38" -> currentY = value.asFloat()
+                        "39" -> currentZ = value.asFloat()
                     }
                 }
             }
-        }
 
-        // --- РИСОВАНИЕ ТОЧЕК И ПОДПИСЕЙ ---
-        for (point in scaledPoints) {
-            canvas.drawCircle(point.x.toFloat(), point.y.toFloat(), 4f, pointPaint)
+        flushPoint()
 
-            val label = "${point.number}\n${point.code}"
-            drawMultilineText(label, point.x.toFloat() + 6f, point.y.toFloat() - 6f, textPaint, canvas)
-        }
+        return points
     }
 
-    private fun drawMultilineText(text: String, x: Float, y: Float, paint: Paint, canvas: Canvas) {
-        val lines = text.split("\n")
-        for ((i, line) in lines.withIndex()) {
-            canvas.drawText(line, x, y + i * (paint.textSize + 2), paint)
-        }
-    }
+    private fun String.asFloat(): Float? = replace(',', '.').toFloatOrNull()
 }
