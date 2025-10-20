@@ -3,27 +3,32 @@ package com.example.pcovviewer
 object PointLabelFormatter {
 
     fun buildLabel(point: PcoParser.PcoPoint, connectedPointNumbers: List<Int>): String {
-        val connections = connectedPointNumbers
+        val lines = mutableListOf<String>()
+
+        lines += point.number.toString()
+
+        val connectionLines = connectedPointNumbers
             .distinct()
             .sorted()
-            .joinToString(separator = ".")
+            .map { targetNumber ->
+                if (point.codeInfo.baseCode.isNotEmpty()) {
+                    "${point.codeInfo.baseCode}..$targetNumber"
+                } else {
+                    "..$targetNumber"
+                }
+            }
 
-        val codeLine = when {
-            connections.isNotEmpty() && point.codeInfo.baseCode.isNotEmpty() ->
-                "${point.codeInfo.baseCode}..$connections"
-            connections.isNotEmpty() ->
-                "..$connections"
-            point.codeInfo.baseCode.isNotEmpty() ->
-                point.codeInfo.baseCode
-            point.code.isNotBlank() ->
-                point.code.trim()
-            else ->
-                ""
+        if (connectionLines.isNotEmpty()) {
+            lines += connectionLines
+        } else if (point.codeInfo.baseCode.isNotEmpty()) {
+            lines += point.codeInfo.baseCode
+        } else {
+            val rawCode = point.code.trim()
+            if (rawCode.isNotEmpty()) {
+                lines += rawCode
+            }
         }
 
-        return listOfNotNull(
-            point.number.toString(),
-            codeLine.takeIf { it.isNotEmpty() }
-        ).joinToString(separator = "\n")
+        return lines.joinToString(separator = "\n")
     }
 }
