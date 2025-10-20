@@ -3,7 +3,6 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -38,26 +37,11 @@ object PdfExporter {
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
-            val pointPaint = Paint().apply {
-                color = Color.BLACK
-                style = Paint.Style.FILL
-                strokeWidth = 1.5f
-                isAntiAlias = true
-            }
+            val pointPaint = DrawingStyle.createPointPaint()
 
-            val textPaint = Paint().apply {
-                color = Color.DKGRAY
-                textSize = 10f
-                isAntiAlias = true
-                isLinearText = true
-                isSubpixelText = true
-            }
+            val textPaint = DrawingStyle.createTextPaint()
 
-            val linePaint = Paint().apply {
-                color = Color.BLUE
-                strokeWidth = 1.5f
-                isAntiAlias = true
-            }
+            val linePaint = DrawingStyle.createLinePaint()
 
             drawConnections(canvas, geometry.connections, linePaint)
             drawPoints(canvas, geometry.points, pointPaint, textPaint)
@@ -120,19 +104,22 @@ object PdfExporter {
         pointPaint: Paint,
         textPaint: Paint
     ) {
+        val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X
+        val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y
+        val lineSpacing = DrawingStyle.BASE_LINE_SPACING
+
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
 
             val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
-            val lines = label.split("\n")
-            lines.forEachIndexed { index, line ->
-                canvas.drawText(
-                    line,
-                    scaledPoint.x + 4f,
-                    scaledPoint.y - 4f + index * (textPaint.textSize + 1.5f),
-                    textPaint
-                )
-            }
+            DrawingStyle.drawMultilineLabel(
+                canvas = canvas,
+                text = label,
+                x = scaledPoint.x + labelOffsetX,
+                y = scaledPoint.y - labelOffsetY,
+                paint = textPaint,
+                lineSpacing = lineSpacing
+            )
         }
     }
 }
