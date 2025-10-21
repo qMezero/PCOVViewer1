@@ -41,10 +41,26 @@ object PdfExporter {
 
             val textPaint = DrawingStyle.createTextPaint()
 
+            val sizeScale = 0.5f
+            val pointRadius = DrawingStyle.BASE_POINT_RADIUS * sizeScale
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * sizeScale
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * sizeScale
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * sizeScale
+            textPaint.textSize = DrawingStyle.BASE_TEXT_SIZE * sizeScale
+
             val linePaint = DrawingStyle.createLinePaint()
 
             drawConnections(canvas, geometry.connections, linePaint)
-            drawPoints(canvas, geometry.points, pointPaint, textPaint)
+            drawPoints(
+                canvas = canvas,
+                points = geometry.points,
+                pointPaint = pointPaint,
+                textPaint = textPaint,
+                pointRadius = pointRadius,
+                labelOffsetX = labelOffsetX,
+                labelOffsetY = labelOffsetY,
+                lineSpacing = lineSpacing
+            )
 
             pdfDocument.finishPage(page)
             FileOutputStream(file).use { output ->
@@ -102,14 +118,14 @@ object PdfExporter {
         canvas: Canvas,
         points: List<ScaledPoint>,
         pointPaint: Paint,
-        textPaint: Paint
+        textPaint: Paint,
+        pointRadius: Float,
+        labelOffsetX: Float,
+        labelOffsetY: Float,
+        lineSpacing: Float
     ) {
-        val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X
-        val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y
-        val lineSpacing = DrawingStyle.BASE_LINE_SPACING
-
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
 
             val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
             DrawingStyle.drawMultilineLabel(
