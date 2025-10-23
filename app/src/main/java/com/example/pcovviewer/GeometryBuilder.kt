@@ -40,17 +40,20 @@ object GeometryBuilder {
         val spanX = max(maxX - minX, 1e-6f)
         val spanY = max(maxY - minY, 1e-6f)
 
-        val scaleX = width / spanX
-        val scaleY = height / spanY
+        val rotatedSpanX = spanY
+        val rotatedSpanY = spanX
+
+        val scaleX = width / rotatedSpanX
+        val scaleY = height / rotatedSpanY
         val scale = min(scaleX, scaleY)
 
-        val offsetX = (width - spanX * scale) / 2f
-        val offsetY = (height - spanY * scale) / 2f
+        val offsetX = (width - rotatedSpanX * scale) / 2f
+        val offsetY = (height - rotatedSpanY * scale) / 2f
 
         val scaledPoints = visiblePoints.map { point ->
-            val scaledX = offsetX + (point.x - minX) * scale
-            val scaledY = offsetY + (maxY - point.y) * scale
-            ScaledPoint(point, scaledX, scaledY)
+            val rotatedX = offsetX + (point.y - minY) * scale
+            val rotatedY = offsetY + (point.x - minX) * scale
+            ScaledPoint(point, rotatedX, rotatedY)
         }
 
         val connections = buildConnections(scaledPoints)
