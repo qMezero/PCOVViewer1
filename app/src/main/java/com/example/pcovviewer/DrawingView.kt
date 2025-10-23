@@ -98,7 +98,7 @@ class DrawingView @JvmOverloads constructor(
         geometry.points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
 
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.code}"
+            val label = "${scaledPoint.point.number}\n${scaledPoint.point.displayCode}"
             drawMultilineText(
                 label,
                 scaledPoint.x + labelOffsetX,
