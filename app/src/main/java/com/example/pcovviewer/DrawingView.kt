@@ -98,9 +98,9 @@ class DrawingView @JvmOverloads constructor(
         geometry.points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
 
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
+            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
-                label,
+                labelLines,
                 scaledPoint.x + labelOffsetX,
                 scaledPoint.y - labelOffsetY,
                 textPaint,
@@ -113,14 +113,13 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private fun drawMultilineText(
-        text: String,
+        lines: List<String>,
         x: Float,
         y: Float,
         paint: Paint,
         lineSpacing: Float,
         canvas: Canvas
     ) {
-        val lines = text.split("\n")
         for ((index, line) in lines.withIndex()) {
             canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
         }
