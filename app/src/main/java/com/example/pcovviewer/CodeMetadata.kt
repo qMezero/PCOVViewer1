@@ -35,7 +35,9 @@ data class CodeInfo(
                 .mapNotNull { it.trim().toIntOrNull() }
                 .distinct()
 
-            return CodeInfo(baseCode = baseCode, connectsToPrevious = false, connectionTargets = targets)
+            // Сами по себе символы ".." означают связь с предыдущей точкой,
+            // даже если дополнительно перечислены явные номера точек.
+            return CodeInfo(baseCode = baseCode, connectsToPrevious = true, connectionTargets = targets)
         }
     }
 }
