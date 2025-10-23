@@ -79,11 +79,10 @@ object GeometryBuilder {
 
             info.connectionTargets.forEach { targetNumber ->
                 val previousNumber = current.point.number - 1
-                // Skip linking codes formatted as "CODE..POINT_NUMBER" to the immediately
-                // preceding point in the numerical sequence.
+                // Skip linking codes that only reference the immediately preceding point in the
+                // numerical sequence (e.g. "CODE..POINT_NUMBER" or "..POINT_NUMBER").
                 val shouldSkipPreviousConnection =
                     targetNumber == previousNumber &&
-                        info.baseCode.isNotEmpty() &&
                         info.connectionTargets.size == 1
 
                 if (shouldSkipPreviousConnection) {
