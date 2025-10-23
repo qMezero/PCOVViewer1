@@ -57,7 +57,9 @@ object GeometryBuilder {
 
         val scaleX = usableWidth / rotatedSpanX
         val scaleY = usableHeight / rotatedSpanY
-        val scale = min(scaleX, scaleY)
+        // Shrink the fitted geometry slightly so the scheme keeps visible margins.
+        val contentScale = style.contentScaleFactor.coerceIn(0.1f, 1f)
+        val scale = min(scaleX, scaleY) * contentScale
 
         val offsetX = padding.left + (usableWidth - rotatedSpanX * scale) / 2f
         val offsetY = padding.top + (usableHeight - rotatedSpanY * scale) / 2f

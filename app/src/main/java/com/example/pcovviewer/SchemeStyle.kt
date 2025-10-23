@@ -15,7 +15,12 @@ data class SchemeStyle(
     val baseLabelOffsetX: Float = 6f,
     val baseLabelOffsetY: Float = 6f,
     val baseLineSpacing: Float = 2f,
-    val outerPadding: Float = 16f
+    val outerPadding: Float = 16f,
+    /**
+     * Additional multiplier applied after fitting the drawing to the viewport.
+     * Values below 1f shrink the scheme slightly so it keeps visible margins.
+     */
+    val contentScaleFactor: Float = 0.9f
 ) {
 
     fun createPointPaint(): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
