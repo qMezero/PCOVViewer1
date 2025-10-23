@@ -12,6 +12,7 @@ import java.io.FileOutputStream
 object PdfExporter {
 
     private val style: SchemeStyle = SchemeStyles.default
+    private val style = SchemeStyles.default
 
     private var lastPdfFile: File? = null
 
@@ -43,6 +44,9 @@ object PdfExporter {
 
             val pointPaint = style.createPointPaint()
             val linePaint = style.createLinePaint()
+            val linePaint = style.createLinePaint().apply {
+                strokeWidth = style.baseStrokeWidth
+            }
             val textPaint = style.createBaseTextPaint()
 
             SchemeRenderer.draw(

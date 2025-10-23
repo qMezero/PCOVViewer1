@@ -10,6 +10,7 @@ data class SchemeStyle(
     val textColor: Int = Color.DKGRAY,
     val basePointRadius: Float = 4f,
     val lineStrokeWidth: Float = 2f,
+    val baseStrokeWidth: Float = 2f,
     val baseTextSize: Float = 18f,
     val baseLabelOffsetX: Float = 6f,
     val baseLabelOffsetY: Float = 6f,
