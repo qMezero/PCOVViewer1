@@ -21,6 +21,19 @@ class GeometryBuilderTest {
     }
 
     @Test
+    fun `does not connect to previous when code has empty base`() {
+        val points = listOf(
+            PcoParser.PcoPoint(number = 1, code = "", x = 0f, y = 0f, z = null),
+            PcoParser.PcoPoint(number = 2, code = "..1", x = 1f, y = 0f, z = null)
+        )
+
+        val geometry = GeometryBuilder.build(points, width = 100f, height = 100f)
+
+        assertNotNull(geometry)
+        assertTrue(geometry!!.connections.isEmpty())
+    }
+
+    @Test
     fun `connects to explicit non-previous target`() {
         val points = listOf(
             PcoParser.PcoPoint(number = 1, code = "10", x = 0f, y = 0f, z = null),
