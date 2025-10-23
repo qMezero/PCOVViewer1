@@ -11,6 +11,35 @@ object PcoParser {
         val attributes: Map<String, String> = emptyMap()
     ) {
         val codeInfo: CodeInfo = CodeInfo.parse(code)
+
+        val displayCode: String
+            get() {
+                val info = codeInfo
+                val trimmed = code.trim()
+
+                if (trimmed.isEmpty()) {
+                    return ""
+                }
+
+                val hasConnections = info.connectsToPrevious || info.connectionTargets.isNotEmpty()
+                if (!hasConnections) {
+                    return trimmed
+                }
+
+                if (info.baseCode.isEmpty()) {
+                    return trimmed
+                }
+
+                val suffix = info.connectionTargets.joinToString(separator = ".")
+
+                return buildString {
+                    append(info.baseCode)
+                    append("..")
+                    if (suffix.isNotEmpty()) {
+                        append(suffix)
+                    }
+                }
+            }
     }
 
     fun parse(rawContent: String): List<PcoPoint> {
