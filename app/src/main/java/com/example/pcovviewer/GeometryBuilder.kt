@@ -82,7 +82,7 @@ object GeometryBuilder {
 
             if (info.connectsToPrevious) {
                 val previous = previousByCode[info.baseCode]
-                if (previous != null) {
+                if (previous != null && previous.point.codeInfo.hasConnectionDefinition()) {
                     addConnection(previous, scaledPoint)
                 }
             }
@@ -99,4 +99,7 @@ object GeometryBuilder {
 
         return result
     }
+
+    private fun CodeInfo.hasConnectionDefinition(): Boolean =
+        connectsToPrevious || connectionTargets.isNotEmpty()
 }
