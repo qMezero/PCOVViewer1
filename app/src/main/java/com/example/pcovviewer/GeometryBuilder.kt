@@ -22,13 +22,25 @@ data class Geometry(
 
 object GeometryBuilder {
 
-    fun build(points: List<PcoParser.PcoPoint>, width: Float, height: Float): Geometry? {
+    fun build(
+        points: List<PcoParser.PcoPoint>,
+        width: Float,
+        height: Float,
+        style: SchemeStyle
+    ): Geometry? {
         if (width <= 0f || height <= 0f) {
             return null
         }
 
         val visiblePoints = points.filterNot { CodeRules.isHidden(it) }
         if (visiblePoints.isEmpty()) {
+            return null
+        }
+
+        val padding = computePadding(visiblePoints, style)
+        val usableWidth = width - padding.horizontal
+        val usableHeight = height - padding.vertical
+        if (usableWidth <= 0f || usableHeight <= 0f) {
             return null
         }
 
@@ -43,12 +55,12 @@ object GeometryBuilder {
         val rotatedSpanX = spanY
         val rotatedSpanY = spanX
 
-        val scaleX = width / rotatedSpanX
-        val scaleY = height / rotatedSpanY
+        val scaleX = usableWidth / rotatedSpanX
+        val scaleY = usableHeight / rotatedSpanY
         val scale = min(scaleX, scaleY)
 
-        val offsetX = (width - rotatedSpanX * scale) / 2f
-        val offsetY = (height - rotatedSpanY * scale) / 2f
+        val offsetX = padding.left + (usableWidth - rotatedSpanX * scale) / 2f
+        val offsetY = padding.top + (usableHeight - rotatedSpanY * scale) / 2f
 
         val scaledPoints = visiblePoints.map { point ->
             val rotatedX = offsetX + (point.y - minY) * scale
@@ -98,5 +110,56 @@ object GeometryBuilder {
         }
 
         return result
+    }
+
+    private fun computePadding(points: List<PcoParser.PcoPoint>, style: SchemeStyle): Padding {
+        if (points.isEmpty()) {
+            return Padding.zero()
+        }
+
+        val textPaint = style.createBaseTextPaint()
+        val fontMetrics = textPaint.fontMetrics
+
+        var minOffsetX = -style.basePointRadius
+        var maxOffsetX = style.basePointRadius
+        var minOffsetY = -style.basePointRadius
+        var maxOffsetY = style.basePointRadius
+
+        points.forEach { point ->
+            val lines = style.labelLines(point)
+            val maxLineWidth = lines.maxOfOrNull { textPaint.measureText(it) } ?: 0f
+
+            val startX = style.baseLabelOffsetX
+            val endX = style.baseLabelOffsetX + maxLineWidth
+
+            minOffsetX = min(minOffsetX, min(startX, endX))
+            maxOffsetX = max(maxOffsetX, max(startX, endX))
+
+            if (lines.isNotEmpty()) {
+                lines.indices.forEach { index ->
+                    val baselineOffset = -style.baseLabelOffsetY + index * (style.baseTextSize + style.baseLineSpacing)
+                    val top = baselineOffset + fontMetrics.top
+                    val bottom = baselineOffset + fontMetrics.bottom
+                    minOffsetY = min(minOffsetY, top)
+                    maxOffsetY = max(maxOffsetY, bottom)
+                }
+            }
+        }
+
+        val left = style.outerPadding + -minOffsetX
+        val right = style.outerPadding + maxOffsetX
+        val top = style.outerPadding + -minOffsetY
+        val bottom = style.outerPadding + maxOffsetY
+
+        return Padding(left, top, right, bottom)
+    }
+}
+
+private data class Padding(val left: Float, val top: Float, val right: Float, val bottom: Float) {
+    val horizontal: Float get() = left + right
+    val vertical: Float get() = top + bottom
+
+    companion object {
+        fun zero() = Padding(0f, 0f, 0f, 0f)
     }
 }
