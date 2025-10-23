@@ -52,8 +52,8 @@ object GeometryBuilder {
 
         val scaledPoints = visiblePoints.map { point ->
             val rotatedX = offsetX + (point.y - minY) * scale
-            val rotatedY = offsetY + (point.x - minX) * scale
-            ScaledPoint(point, rotatedX, rotatedY)
+            val flippedY = offsetY + (maxX - point.x) * scale
+            ScaledPoint(point, rotatedX, flippedY)
         }
 
         val connections = buildConnections(scaledPoints)
