@@ -74,20 +74,6 @@ object GeometryBuilder {
             }
         }
 
-        fun shouldConnectByChain(previous: ScaledPoint, current: ScaledPoint): Boolean {
-            val currentBase = current.point.codeInfo.baseCode
-            if (currentBase.isEmpty()) {
-                return false
-            }
-
-            val previousBase = previous.point.codeInfo.baseCode
-            if (previousBase.isEmpty()) {
-                return false
-            }
-
-            return previousBase.equals(currentBase, ignoreCase = true)
-        }
-
         sortedPoints.forEach { current ->
             val info = current.point.codeInfo
 
@@ -107,14 +93,6 @@ object GeometryBuilder {
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
                     addConnection(current, target)
-                }
-            }
-
-            if (info.connectsToPrevious) {
-                val previousNumber = current.point.number - 1
-                val previous = pointsByNumber[previousNumber]
-                if (previous != null && shouldConnectByChain(previous, current)) {
-                    addConnection(previous, current)
                 }
             }
         }
