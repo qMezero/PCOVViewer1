@@ -123,9 +123,8 @@ object PdfExporter {
         points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
 
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
-            val lines = label.split("\n")
-            lines.forEachIndexed { index, line ->
+            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
+            labelLines.forEachIndexed { index, line ->
                 canvas.drawText(
                     line,
                     scaledPoint.x + 4f,
