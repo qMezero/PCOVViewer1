@@ -2,8 +2,6 @@ package com.example.pcovviewer
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -14,30 +12,18 @@ class DrawingView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
+    private val style: SchemeStyle = SchemeStyles.default
+
+    init {
+        setBackgroundColor(style.backgroundColor)
+    }
+
     private var points: List<PcoParser.PcoPoint> = emptyList()
 
-    private val pointPaint = Paint().apply {
-        color = Color.RED
-        style = Paint.Style.FILL
-        isAntiAlias = true
-    }
-
-    private val linePaint = Paint().apply {
-        color = Color.BLUE
-        isAntiAlias = true
-    }
-
-    private val textPaint = Paint().apply {
-        color = Color.DKGRAY
-        isAntiAlias = true
-    }
-
-    private val basePointRadius = 4f
-    private val baseStrokeWidth = 2f
-    private val baseTextSize = 18f
-    private val baseLabelOffsetX = 6f
-    private val baseLabelOffsetY = 6f
-    private val baseLineSpacing = 2f
+    private val pointPaint = style.createPointPaint()
+    private val linePaint = style.createLinePaint()
+    private val textPaint = style.createBaseTextPaint()
+    private val baseLineStrokeWidth = linePaint.strokeWidth
 
     private var scaleFactor = 1f
     private var panX = 0f
@@ -75,14 +61,14 @@ class DrawingView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val geometry = GeometryBuilder.build(points, width.toFloat(), height.toFloat()) ?: return
+        val geometry = GeometryBuilder.build(points, width.toFloat(), height.toFloat(), style) ?: return
 
-        val adjustedStrokeWidth = baseStrokeWidth / scaleFactor
-        val adjustedTextSize = baseTextSize / scaleFactor
-        val adjustedPointRadius = basePointRadius / scaleFactor
-        val labelOffsetX = baseLabelOffsetX / scaleFactor
-        val labelOffsetY = baseLabelOffsetY / scaleFactor
-        val lineSpacing = baseLineSpacing / scaleFactor
+        val adjustedStrokeWidth = baseLineStrokeWidth / scaleFactor
+        val adjustedTextSize = style.baseTextSize / scaleFactor
+        val adjustedPointRadius = style.basePointRadius / scaleFactor
+        val labelOffsetX = style.baseLabelOffsetX / scaleFactor
+        val labelOffsetY = style.baseLabelOffsetY / scaleFactor
+        val lineSpacing = style.baseLineSpacing / scaleFactor
 
         linePaint.strokeWidth = adjustedStrokeWidth
         textPaint.textSize = adjustedTextSize
@@ -91,39 +77,20 @@ class DrawingView @JvmOverloads constructor(
         canvas.translate(panX, panY)
         canvas.scale(scaleFactor, scaleFactor)
 
-        geometry.connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, linePaint)
-        }
-
-        geometry.points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
-
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
-            drawMultilineText(
-                label,
-                scaledPoint.x + labelOffsetX,
-                scaledPoint.y - labelOffsetY,
-                textPaint,
-                lineSpacing,
-                canvas
-            )
-        }
+        SchemeRenderer.draw(
+            canvas = canvas,
+            geometry = geometry,
+            style = style,
+            pointPaint = pointPaint,
+            linePaint = linePaint,
+            textPaint = textPaint,
+            pointRadius = adjustedPointRadius,
+            labelOffsetX = labelOffsetX,
+            labelOffsetY = labelOffsetY,
+            lineSpacing = lineSpacing
+        )
 
         canvas.restore()
-    }
-
-    private fun drawMultilineText(
-        text: String,
-        x: Float,
-        y: Float,
-        paint: Paint,
-        lineSpacing: Float,
-        canvas: Canvas
-    ) {
-        val lines = text.split("\n")
-        for ((index, line) in lines.withIndex()) {
-            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
-        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

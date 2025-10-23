@@ -3,8 +3,6 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.example.pcovviewer.PcoParser.PcoPoint
@@ -12,6 +10,8 @@ import java.io.File
 import java.io.FileOutputStream
 
 object PdfExporter {
+
+    private val style: SchemeStyle = SchemeStyles.default
 
     private var lastPdfFile: File? = null
 
@@ -29,7 +29,8 @@ object PdfExporter {
             val geometry = GeometryBuilder.build(
                 points = points,
                 width = pageInfo.pageWidth.toFloat(),
-                height = pageInfo.pageHeight.toFloat()
+                height = pageInfo.pageHeight.toFloat(),
+                style = style
             ) ?: run {
                 pdfDocument.close()
                 return null
@@ -38,29 +39,24 @@ object PdfExporter {
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
-            val pointPaint = Paint().apply {
-                color = Color.BLACK
-                style = Paint.Style.FILL
-                strokeWidth = 1.5f
-                isAntiAlias = true
-            }
+            canvas.drawColor(style.backgroundColor)
 
-            val textPaint = Paint().apply {
-                color = Color.DKGRAY
-                textSize = 10f
-                isAntiAlias = true
-                isLinearText = true
-                isSubpixelText = true
-            }
+            val pointPaint = style.createPointPaint()
+            val linePaint = style.createLinePaint()
+            val textPaint = style.createBaseTextPaint()
 
-            val linePaint = Paint().apply {
-                color = Color.BLUE
-                strokeWidth = 1.5f
-                isAntiAlias = true
-            }
-
-            drawConnections(canvas, geometry.connections, linePaint)
-            drawPoints(canvas, geometry.points, pointPaint, textPaint)
+            SchemeRenderer.draw(
+                canvas = canvas,
+                geometry = geometry,
+                style = style,
+                pointPaint = pointPaint,
+                linePaint = linePaint,
+                textPaint = textPaint,
+                pointRadius = style.basePointRadius,
+                labelOffsetX = style.baseLabelOffsetX,
+                labelOffsetY = style.baseLabelOffsetY,
+                lineSpacing = style.baseLineSpacing
+            )
 
             pdfDocument.finishPage(page)
             FileOutputStream(file).use { output ->
@@ -104,35 +100,4 @@ object PdfExporter {
         return false
     }
 
-    private fun drawConnections(
-        canvas: Canvas,
-        connections: List<Pair<ScaledPoint, ScaledPoint>>,
-        paint: Paint
-    ) {
-        connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
-        }
-    }
-
-    private fun drawPoints(
-        canvas: Canvas,
-        points: List<ScaledPoint>,
-        pointPaint: Paint,
-        textPaint: Paint
-    ) {
-        points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
-
-            val label = "${scaledPoint.point.number}\n${scaledPoint.point.codeInfo.baseCode}"
-            val lines = label.split("\n")
-            lines.forEachIndexed { index, line ->
-                canvas.drawText(
-                    line,
-                    scaledPoint.x + 4f,
-                    scaledPoint.y - 4f + index * (textPaint.textSize + 1.5f),
-                    textPaint
-                )
-            }
-        }
-    }
 }
