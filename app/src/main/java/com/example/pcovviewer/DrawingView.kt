@@ -12,6 +12,12 @@ class DrawingView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
+    private val style: SchemeStyle = SchemeStyles.default
+
+    init {
+        setBackgroundColor(style.backgroundColor)
+    }
+
     private val style = SchemeStyles.default
 
     private var points: List<PcoParser.PcoPoint> = emptyList()
@@ -19,6 +25,7 @@ class DrawingView @JvmOverloads constructor(
     private val pointPaint = style.createPointPaint()
     private val linePaint = style.createLinePaint()
     private val textPaint = style.createBaseTextPaint()
+    private val baseLineStrokeWidth = linePaint.strokeWidth
 
     private var scaleFactor = 1f
     private var panX = 0f
@@ -58,6 +65,7 @@ class DrawingView @JvmOverloads constructor(
 
         val geometry = GeometryBuilder.build(points, width.toFloat(), height.toFloat(), style) ?: return
 
+        val adjustedStrokeWidth = baseLineStrokeWidth / scaleFactor
         val adjustedStrokeWidth = style.baseStrokeWidth / scaleFactor
         val adjustedTextSize = style.baseTextSize / scaleFactor
         val adjustedPointRadius = style.basePointRadius / scaleFactor

@@ -9,6 +9,7 @@ data class SchemeStyle(
     val lineColor: Int = Color.BLUE,
     val textColor: Int = Color.DKGRAY,
     val basePointRadius: Float = 4f,
+    val lineStrokeWidth: Float = 2f,
     val baseStrokeWidth: Float = 2f,
     val baseTextSize: Float = 18f,
     val baseLabelOffsetX: Float = 6f,
@@ -25,6 +26,7 @@ data class SchemeStyle(
     fun createLinePaint(): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = lineColor
         style = Paint.Style.STROKE
+        strokeWidth = lineStrokeWidth
     }
 
     fun createBaseTextPaint(): Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
