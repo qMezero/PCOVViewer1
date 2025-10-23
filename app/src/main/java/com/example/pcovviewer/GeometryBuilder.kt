@@ -92,6 +92,18 @@ object GeometryBuilder {
             val info = current.point.codeInfo
 
             info.connectionTargets.forEach { targetNumber ->
+                val previousNumber = current.point.number - 1
+                // Skip linking codes formatted as "CODE..POINT_NUMBER" to the immediately
+                // preceding point in the numerical sequence.
+                val shouldSkipPreviousConnection =
+                    targetNumber == previousNumber &&
+                        info.baseCode.isNotEmpty() &&
+                        info.connectionTargets.size == 1
+
+                if (shouldSkipPreviousConnection) {
+                    return@forEach
+                }
+
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
                     addConnection(current, target)
