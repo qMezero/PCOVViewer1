@@ -66,8 +66,14 @@ object GeometryBuilder {
         val result = mutableListOf<Pair<ScaledPoint, ScaledPoint>>()
         val deduplicationSet = mutableSetOf<Long>()
 
+        fun hasDeclaredConnections(point: ScaledPoint): Boolean {
+            val info = point.point.codeInfo
+            return info.connectsToPrevious || info.connectionTargets.isNotEmpty()
+        }
+
         fun addConnection(from: ScaledPoint, to: ScaledPoint) {
             if (from === to) return
+            if (!hasDeclaredConnections(from) || !hasDeclaredConnections(to)) return
             val key = orderedConnectionKey(from.point.number, to.point.number)
             if (deduplicationSet.add(key)) {
                 result += from to to
