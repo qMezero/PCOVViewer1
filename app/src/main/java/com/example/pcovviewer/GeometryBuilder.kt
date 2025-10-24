@@ -124,6 +124,30 @@ object GeometryBuilder {
         }
 
         val suffix = rawCode.substring(2).trim()
+        if (suffix == lower.point.number.toString()) {
+            return true
+        }
+
+        val lowerPointNames = lower.point.possibleNames()
+        if (lowerPointNames.isEmpty()) {
+            return false
+        }
+
+        return lowerPointNames.any { candidate -> candidate.equals(suffix, ignoreCase = true) }
+    }
+}
+
+private val nonNameAttributeKeys = setOf("4", "5", "37", "38", "39")
+
+private fun PcoParser.PcoPoint.possibleNames(): List<String> {
+    if (attributes.isEmpty()) return emptyList()
+
+    return attributes
+        .asSequence()
+        .filter { (key, _) -> key !in nonNameAttributeKeys }
+        .map { (_, value) -> value.trim() }
+        .filter { it.isNotEmpty() && it.any { ch -> ch.isLetter() } }
+        .toList()
         return suffix == lower.point.number.toString()
     }
 }
