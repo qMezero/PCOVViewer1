@@ -65,7 +65,7 @@ object GeometryBuilder {
         if (points.isEmpty()) return emptyList()
 
         val pointsByNumber = points.associateBy { it.point.number }
-        val previousByCode = mutableMapOf<String, ScaledPoint>()
+        val sortedNumbers = pointsByNumber.keys.sorted()
         val result = mutableListOf<Pair<ScaledPoint, ScaledPoint>>()
         val deduplicationSet = mutableSetOf<Long>()
 
@@ -77,58 +77,19 @@ object GeometryBuilder {
             }
         }
 
-        points.forEach { scaledPoint ->
-            val info = scaledPoint.point.codeInfo
+        sortedNumbers.forEach { number ->
+            val current = pointsByNumber[number] ?: return@forEach
 
-            var shouldResetPrevious = false
-
-            if (info.connectsToPrevious) {
-                val sequentialPrevious = pointsByNumber[scaledPoint.point.number - 1]
-                val previous = previousByCode[info.baseCode]
-
-                if (
-                when {
-                    sequentialPrevious != null &&
-                        sequentialPrevious.point.codeInfo.baseCode == info.baseCode -> {
-                        addConnection(sequentialPrevious, scaledPoint)
-                    }
-                    previous != null && previous.point.number == scaledPoint.point.number - 1 -> {
-                        addConnection(previous, scaledPoint)
-                    }
-                val sequentialPrevious = pointsByNumber[scaledPoint.point.number - 1]
-
-                val shouldConnectToPrevious = previous != null &&
-                    (previous.point.codeInfo.hasConnectionDefinition() ||
-                        previous.point.number == scaledPoint.point.number - 1)
-
-                if (shouldConnectToPrevious) {
-                    addConnection(previous!!, scaledPoint)
-                } else if (
-                    sequentialPrevious != null &&
-                    sequentialPrevious.point.codeInfo.baseCode == info.baseCode
-                ) {
-                    addConnection(sequentialPrevious, scaledPoint)
-                } else if (previous != null && previous.point.number == scaledPoint.point.number - 1) {
-                    addConnection(previous, scaledPoint)
-                }
+            val previous = pointsByNumber[number - 1]
+            if (previous != null) {
+                addConnection(previous, current)
             }
 
-            info.connectionTargets.forEach { targetNumber ->
+            current.point.codeInfo.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    addConnection(scaledPoint, target)
-                    if (target.point.number < scaledPoint.point.number) {
-                        shouldResetPrevious = true
-                    }
-                } else if (targetNumber < scaledPoint.point.number) {
-                    shouldResetPrevious = true
+                    addConnection(current, target)
                 }
-            }
-
-            if (shouldResetPrevious) {
-                previousByCode.remove(info.baseCode)
-            } else {
-                previousByCode[info.baseCode] = scaledPoint
             }
         }
 
