@@ -61,47 +61,30 @@ object PdfExporter {
 
             val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                strokeWidth = 0f
                 color = DrawingStyle.POINT_COLOR
             }
 
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.TEXT_COLOR
                 textSize = textSize
-            val pointPaint = Paint().apply {
-                color = DrawingStyle.POINT_COLOR
-                style = Paint.Style.FILL
-                isAntiAlias = true
-            }
-
-            val textPaint = Paint().apply {
-                color = DrawingStyle.TEXT_COLOR
-                textSize = DrawingStyle.BASE_TEXT_SIZE
-                isAntiAlias = true
-                isLinearText = true
-                isSubpixelText = true
             }
 
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.LINE_COLOR
                 style = Paint.Style.STROKE
                 strokeWidth = strokeWidth
-            val linePaint = Paint().apply {
-                color = DrawingStyle.LINE_COLOR
-                strokeWidth = DrawingStyle.BASE_STROKE_WIDTH
-                isAntiAlias = true
             }
 
             drawConnections(canvas, geometry.connections, linePaint)
             drawPoints(
-                canvas,
-                geometry.points,
-                pointPaint,
-                textPaint,
-                pointRadius,
-                labelOffsetX,
-                labelOffsetY,
-                lineSpacing
+                canvas = canvas,
+                points = geometry.points,
+                pointPaint = pointPaint,
+                textPaint = textPaint,
+                pointRadius = pointRadius,
+                labelOffsetX = labelOffsetX,
+                labelOffsetY = labelOffsetY,
+                lineSpacing = lineSpacing
             )
 
             pdfDocument.finishPage(page)
@@ -168,20 +151,15 @@ object PdfExporter {
     ) {
         points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
-                labelLines,
-                scaledPoint.x + labelOffsetX,
-                scaledPoint.y - labelOffsetY,
-                textPaint,
-                lineSpacing,
-                scaledPoint.x + DrawingStyle.BASE_LABEL_OFFSET_X,
-                scaledPoint.y - DrawingStyle.BASE_LABEL_OFFSET_Y,
-                textPaint,
-                DrawingStyle.BASE_LINE_SPACING,
-                canvas
+                lines = labelLines,
+                x = scaledPoint.x + labelOffsetX,
+                y = scaledPoint.y - labelOffsetY,
+                paint = textPaint,
+                lineSpacing = lineSpacing,
+                canvas = canvas
             )
         }
     }
