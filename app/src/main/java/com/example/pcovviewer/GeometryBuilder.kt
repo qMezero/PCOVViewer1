@@ -148,4 +148,6 @@ private fun PcoParser.PcoPoint.possibleNames(): List<String> {
         .map { (_, value) -> value.trim() }
         .filter { it.isNotEmpty() && it.any { ch -> ch.isLetter() } }
         .toList()
+        return suffix == lower.point.number.toString()
+    }
 }
