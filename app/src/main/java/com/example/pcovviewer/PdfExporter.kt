@@ -68,6 +68,16 @@ object PdfExporter {
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.TEXT_COLOR
                 textSize = textSize
+            val pointPaint = Paint().apply {
+                color = DrawingStyle.POINT_COLOR
+                style = Paint.Style.FILL
+                isAntiAlias = true
+            }
+
+            val textPaint = Paint().apply {
+                color = DrawingStyle.TEXT_COLOR
+                textSize = DrawingStyle.BASE_TEXT_SIZE
+                isAntiAlias = true
                 isLinearText = true
                 isSubpixelText = true
             }
@@ -76,6 +86,10 @@ object PdfExporter {
                 color = DrawingStyle.LINE_COLOR
                 style = Paint.Style.STROKE
                 strokeWidth = strokeWidth
+            val linePaint = Paint().apply {
+                color = DrawingStyle.LINE_COLOR
+                strokeWidth = DrawingStyle.BASE_STROKE_WIDTH
+                isAntiAlias = true
             }
 
             drawConnections(canvas, geometry.connections, linePaint)
@@ -154,6 +168,7 @@ object PdfExporter {
     ) {
         points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
@@ -162,6 +177,10 @@ object PdfExporter {
                 scaledPoint.y - labelOffsetY,
                 textPaint,
                 lineSpacing,
+                scaledPoint.x + DrawingStyle.BASE_LABEL_OFFSET_X,
+                scaledPoint.y - DrawingStyle.BASE_LABEL_OFFSET_Y,
+                textPaint,
+                DrawingStyle.BASE_LINE_SPACING,
                 canvas
             )
         }
