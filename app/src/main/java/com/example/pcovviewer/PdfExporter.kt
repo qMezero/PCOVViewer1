@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Color
 import android.graphics.Path
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -14,6 +15,9 @@ import java.io.FileOutputStream
 object PdfExporter {
 
     private var lastPdfFile: File? = null
+
+    private const val PDF_POINT_RADIUS_MULTIPLIER = 0.5f
+    private const val PDF_TEXT_SIZE_MULTIPLIER = 0.5f
 
     fun exportToPdf(context: Context, points: List<PcoPoint>): File? {
         if (points.isEmpty()) {
@@ -50,19 +54,19 @@ object PdfExporter {
             val relativeScale = if (previewScale > 0f) geometry.scale / previewScale else 1f
             val clampedScale = relativeScale.coerceAtMost(1f)
 
-            val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale
+            val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale
-            val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale
-            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale
-            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale
-            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale
+            val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
 
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
             val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                color = DrawingStyle.POINT_COLOR
+                color = Color.RED
             }
 
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
