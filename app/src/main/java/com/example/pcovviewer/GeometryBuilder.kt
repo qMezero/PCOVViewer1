@@ -81,7 +81,7 @@ object GeometryBuilder {
             val current = pointsByNumber[number] ?: return@forEach
 
             val previous = pointsByNumber[number - 1]
-            if (previous != null) {
+            if (previous != null && current.point.codeInfo.connectsToPrevious) {
                 addConnection(previous, current)
             }
 
