@@ -3,7 +3,6 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -39,23 +38,22 @@ object PdfExporter {
             val canvas: Canvas = page.canvas
 
             val pointPaint = Paint().apply {
-                color = Color.BLACK
+                color = DrawingStyle.POINT_COLOR
                 style = Paint.Style.FILL
-                strokeWidth = 1.5f
                 isAntiAlias = true
             }
 
             val textPaint = Paint().apply {
-                color = Color.DKGRAY
-                textSize = 10f
+                color = DrawingStyle.TEXT_COLOR
+                textSize = DrawingStyle.BASE_TEXT_SIZE
                 isAntiAlias = true
                 isLinearText = true
                 isSubpixelText = true
             }
 
             val linePaint = Paint().apply {
-                color = Color.BLUE
-                strokeWidth = 1.5f
+                color = DrawingStyle.LINE_COLOR
+                strokeWidth = DrawingStyle.BASE_STROKE_WIDTH
                 isAntiAlias = true
             }
 
@@ -121,17 +119,30 @@ object PdfExporter {
         textPaint: Paint
     ) {
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            labelLines.forEachIndexed { index, line ->
-                canvas.drawText(
-                    line,
-                    scaledPoint.x + 4f,
-                    scaledPoint.y - 4f + index * (textPaint.textSize + 1.5f),
-                    textPaint
-                )
-            }
+            drawMultilineText(
+                labelLines,
+                scaledPoint.x + DrawingStyle.BASE_LABEL_OFFSET_X,
+                scaledPoint.y - DrawingStyle.BASE_LABEL_OFFSET_Y,
+                textPaint,
+                DrawingStyle.BASE_LINE_SPACING,
+                canvas
+            )
+        }
+    }
+
+    private fun drawMultilineText(
+        lines: List<String>,
+        x: Float,
+        y: Float,
+        paint: Paint,
+        lineSpacing: Float,
+        canvas: Canvas
+    ) {
+        lines.forEachIndexed { index, line ->
+            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
         }
     }
 }
