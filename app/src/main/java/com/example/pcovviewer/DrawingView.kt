@@ -2,7 +2,6 @@ package com.example.pcovviewer
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -17,27 +16,27 @@ class DrawingView @JvmOverloads constructor(
     private var points: List<PcoParser.PcoPoint> = emptyList()
 
     private val pointPaint = Paint().apply {
-        color = Color.RED
+        color = DrawingStyle.POINT_COLOR
         style = Paint.Style.FILL
         isAntiAlias = true
     }
 
     private val linePaint = Paint().apply {
-        color = Color.BLUE
+        color = DrawingStyle.LINE_COLOR
         isAntiAlias = true
     }
 
     private val textPaint = Paint().apply {
-        color = Color.DKGRAY
+        color = DrawingStyle.TEXT_COLOR
         isAntiAlias = true
     }
 
-    private val basePointRadius = 4f
-    private val baseStrokeWidth = 2f
-    private val baseTextSize = 18f
-    private val baseLabelOffsetX = 6f
-    private val baseLabelOffsetY = 6f
-    private val baseLineSpacing = 2f
+    private val basePointRadius = DrawingStyle.BASE_POINT_RADIUS
+    private val baseStrokeWidth = DrawingStyle.BASE_STROKE_WIDTH
+    private val baseTextSize = DrawingStyle.BASE_TEXT_SIZE
+    private val baseLabelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X
+    private val baseLabelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y
+    private val baseLineSpacing = DrawingStyle.BASE_LINE_SPACING
 
     private var scaleFactor = 1f
     private var panX = 0f

@@ -3,7 +3,6 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -35,32 +34,61 @@ object PdfExporter {
                 return null
             }
 
+            val previewMetrics = context.resources.displayMetrics
+            val previewGeometry = if (previewMetrics.widthPixels > 0 && previewMetrics.heightPixels > 0) {
+                GeometryBuilder.build(
+                    points = points,
+                    width = previewMetrics.widthPixels.toFloat(),
+                    height = previewMetrics.heightPixels.toFloat()
+                )
+            } else {
+                null
+            }
+
+            val previewScale = previewGeometry?.scale ?: geometry.scale
+            val relativeScale = if (previewScale > 0f) geometry.scale / previewScale else 1f
+            val clampedScale = relativeScale.coerceAtMost(1f)
+
+            val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale
+            val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale
+            val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale
+
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
-            val pointPaint = Paint().apply {
-                color = Color.BLACK
+            val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                strokeWidth = 1.5f
-                isAntiAlias = true
+                strokeWidth = 0f
+                color = DrawingStyle.POINT_COLOR
             }
 
-            val textPaint = Paint().apply {
-                color = Color.DKGRAY
-                textSize = 10f
-                isAntiAlias = true
+            val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.TEXT_COLOR
+                textSize = textSize
                 isLinearText = true
                 isSubpixelText = true
             }
 
-            val linePaint = Paint().apply {
-                color = Color.BLUE
-                strokeWidth = 1.5f
-                isAntiAlias = true
+            val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.LINE_COLOR
+                style = Paint.Style.STROKE
+                strokeWidth = strokeWidth
             }
 
             drawConnections(canvas, geometry.connections, linePaint)
-            drawPoints(canvas, geometry.points, pointPaint, textPaint)
+            drawPoints(
+                canvas,
+                geometry.points,
+                pointPaint,
+                textPaint,
+                pointRadius,
+                labelOffsetX,
+                labelOffsetY,
+                lineSpacing
+            )
 
             pdfDocument.finishPage(page)
             FileOutputStream(file).use { output ->
@@ -118,20 +146,37 @@ object PdfExporter {
         canvas: Canvas,
         points: List<ScaledPoint>,
         pointPaint: Paint,
-        textPaint: Paint
+        textPaint: Paint,
+        pointRadius: Float,
+        labelOffsetX: Float,
+        labelOffsetY: Float,
+        lineSpacing: Float
     ) {
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            labelLines.forEachIndexed { index, line ->
-                canvas.drawText(
-                    line,
-                    scaledPoint.x + 4f,
-                    scaledPoint.y - 4f + index * (textPaint.textSize + 1.5f),
-                    textPaint
-                )
-            }
+            drawMultilineText(
+                labelLines,
+                scaledPoint.x + labelOffsetX,
+                scaledPoint.y - labelOffsetY,
+                textPaint,
+                lineSpacing,
+                canvas
+            )
+        }
+    }
+
+    private fun drawMultilineText(
+        lines: List<String>,
+        x: Float,
+        y: Float,
+        paint: Paint,
+        lineSpacing: Float,
+        canvas: Canvas
+    ) {
+        lines.forEachIndexed { index, line ->
+            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
         }
     }
 }
