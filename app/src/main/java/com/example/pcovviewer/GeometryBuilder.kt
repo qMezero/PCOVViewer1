@@ -71,6 +71,7 @@ object GeometryBuilder {
 
         fun addConnection(from: ScaledPoint, to: ScaledPoint) {
             if (from === to) return
+            if (shouldSkipConnection(from, to)) return
             val key = orderedConnectionKey(from.point.number, to.point.number)
             if (deduplicationSet.add(key)) {
                 result += from to to
@@ -94,5 +95,35 @@ object GeometryBuilder {
         }
 
         return result
+    }
+
+    private fun shouldSkipConnection(first: ScaledPoint, second: ScaledPoint): Boolean {
+        val (lower, higher) = if (first.point.number <= second.point.number) {
+            first to second
+        } else {
+            second to first
+        }
+
+        if (higher.point.number != lower.point.number + 1) {
+            return false
+        }
+
+        val info = higher.point.codeInfo
+        if (!info.connectsToPrevious || info.baseCode.isNotEmpty()) {
+            return false
+        }
+
+        val targets = info.connectionTargets
+        if (targets.size != 1 || targets.first() != lower.point.number) {
+            return false
+        }
+
+        val rawCode = higher.point.code.trim().trimEnd { it == '.' }
+        if (!rawCode.startsWith("..")) {
+            return false
+        }
+
+        val suffix = rawCode.substring(2).trim()
+        return suffix == lower.point.number.toString()
     }
 }
