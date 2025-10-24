@@ -83,9 +83,17 @@ object GeometryBuilder {
             var shouldResetPrevious = false
 
             if (info.connectsToPrevious) {
+                val sequentialPrevious = pointsByNumber[scaledPoint.point.number - 1]
                 val previous = previousByCode[info.baseCode]
-                if (previous != null && previous.point.codeInfo.hasConnectionDefinition()) {
-                    addConnection(previous, scaledPoint)
+
+                when {
+                    sequentialPrevious != null &&
+                        sequentialPrevious.point.codeInfo.baseCode == info.baseCode -> {
+                        addConnection(sequentialPrevious, scaledPoint)
+                    }
+                    previous != null && previous.point.number == scaledPoint.point.number - 1 -> {
+                        addConnection(previous, scaledPoint)
+                    }
                 }
             }
 
@@ -110,7 +118,4 @@ object GeometryBuilder {
 
         return result
     }
-
-    private fun CodeInfo.hasConnectionDefinition(): Boolean =
-        connectsToPrevious || connectionTargets.isNotEmpty()
 }
