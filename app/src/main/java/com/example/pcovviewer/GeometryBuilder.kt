@@ -82,11 +82,12 @@ object GeometryBuilder {
             val current = pointsByNumber[number] ?: return@forEach
 
             val previous = pointsByNumber[number - 1]
-            if (previous != null && current.point.codeInfo.connectsToPrevious) {
+            val info = current.point.codeInfo
+            if (previous != null && info.connectsToPrevious && info.connectionTargets.isEmpty()) {
                 addConnection(previous, current)
             }
 
-            current.point.codeInfo.connectionTargets.forEach { targetNumber ->
+            info.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
                     addConnection(current, target)
