@@ -66,12 +66,14 @@ object PdfExporter {
 
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.TEXT_COLOR
+                this.textSize = textSize
                 textSize = textSize
             }
 
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.LINE_COLOR
                 style = Paint.Style.STROKE
+                this.strokeWidth = strokeWidth
                 strokeWidth = strokeWidth
             }
 
