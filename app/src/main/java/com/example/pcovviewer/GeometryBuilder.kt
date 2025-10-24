@@ -80,6 +80,8 @@ object GeometryBuilder {
         points.forEach { scaledPoint ->
             val info = scaledPoint.point.codeInfo
 
+            var shouldResetPrevious = false
+
             if (info.connectsToPrevious) {
                 val previous = previousByCode[info.baseCode]
                 if (previous != null && previous.point.codeInfo.hasConnectionDefinition()) {
@@ -91,10 +93,19 @@ object GeometryBuilder {
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
                     addConnection(scaledPoint, target)
+                    if (target.point.number < scaledPoint.point.number) {
+                        shouldResetPrevious = true
+                    }
+                } else if (targetNumber < scaledPoint.point.number) {
+                    shouldResetPrevious = true
                 }
             }
 
-            previousByCode[info.baseCode] = scaledPoint
+            if (shouldResetPrevious) {
+                previousByCode.remove(info.baseCode)
+            } else {
+                previousByCode[info.baseCode] = scaledPoint
+            }
         }
 
         return result
