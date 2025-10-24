@@ -84,8 +84,19 @@ object GeometryBuilder {
 
             if (info.connectsToPrevious) {
                 val previous = previousByCode[info.baseCode]
-                if (previous != null && previous.point.codeInfo.hasConnectionDefinition()) {
-                    addConnection(previous, scaledPoint)
+                val sequentialPrevious = pointsByNumber[scaledPoint.point.number - 1]
+
+                val shouldConnectToPrevious = previous != null &&
+                    (previous.point.codeInfo.hasConnectionDefinition() ||
+                        previous.point.number == scaledPoint.point.number - 1)
+
+                if (shouldConnectToPrevious) {
+                    addConnection(previous!!, scaledPoint)
+                } else if (
+                    sequentialPrevious != null &&
+                    sequentialPrevious.point.codeInfo.baseCode == info.baseCode
+                ) {
+                    addConnection(sequentialPrevious, scaledPoint)
                 }
             }
 
