@@ -34,9 +34,40 @@ object PdfExporter {
                 return null
             }
 
+            val previewMetrics = context.resources.displayMetrics
+            val previewGeometry = if (previewMetrics.widthPixels > 0 && previewMetrics.heightPixels > 0) {
+                GeometryBuilder.build(
+                    points = points,
+                    width = previewMetrics.widthPixels.toFloat(),
+                    height = previewMetrics.heightPixels.toFloat()
+                )
+            } else {
+                null
+            }
+
+            val previewScale = previewGeometry?.scale ?: geometry.scale
+            val relativeScale = if (previewScale > 0f) geometry.scale / previewScale else 1f
+            val clampedScale = relativeScale.coerceAtMost(1f)
+
+            val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale
+            val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale
+            val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale
+
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
 
+            val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                strokeWidth = 0f
+                color = DrawingStyle.POINT_COLOR
+            }
+
+            val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.TEXT_COLOR
+                textSize = textSize
             val pointPaint = Paint().apply {
                 color = DrawingStyle.POINT_COLOR
                 style = Paint.Style.FILL
@@ -51,6 +82,10 @@ object PdfExporter {
                 isSubpixelText = true
             }
 
+            val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.LINE_COLOR
+                style = Paint.Style.STROKE
+                strokeWidth = strokeWidth
             val linePaint = Paint().apply {
                 color = DrawingStyle.LINE_COLOR
                 strokeWidth = DrawingStyle.BASE_STROKE_WIDTH
@@ -58,7 +93,16 @@ object PdfExporter {
             }
 
             drawConnections(canvas, geometry.connections, linePaint)
-            drawPoints(canvas, geometry.points, pointPaint, textPaint)
+            drawPoints(
+                canvas,
+                geometry.points,
+                pointPaint,
+                textPaint,
+                pointRadius,
+                labelOffsetX,
+                labelOffsetY,
+                lineSpacing
+            )
 
             pdfDocument.finishPage(page)
             FileOutputStream(file).use { output ->
@@ -116,14 +160,23 @@ object PdfExporter {
         canvas: Canvas,
         points: List<ScaledPoint>,
         pointPaint: Paint,
-        textPaint: Paint
+        textPaint: Paint,
+        pointRadius: Float,
+        labelOffsetX: Float,
+        labelOffsetY: Float,
+        lineSpacing: Float
     ) {
         points.forEach { scaledPoint ->
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, DrawingStyle.BASE_POINT_RADIUS, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
                 labelLines,
+                scaledPoint.x + labelOffsetX,
+                scaledPoint.y - labelOffsetY,
+                textPaint,
+                lineSpacing,
                 scaledPoint.x + DrawingStyle.BASE_LABEL_OFFSET_X,
                 scaledPoint.y - DrawingStyle.BASE_LABEL_OFFSET_Y,
                 textPaint,

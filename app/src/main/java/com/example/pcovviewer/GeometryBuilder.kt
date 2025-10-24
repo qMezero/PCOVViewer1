@@ -17,7 +17,8 @@ data class ScaledPoint(
  */
 data class Geometry(
     val points: List<ScaledPoint>,
-    val connections: List<Pair<ScaledPoint, ScaledPoint>>
+    val connections: List<Pair<ScaledPoint, ScaledPoint>>,
+    val scale: Float
 )
 
 object GeometryBuilder {
@@ -58,7 +59,7 @@ object GeometryBuilder {
 
         val connections = buildConnections(scaledPoints)
 
-        return Geometry(points = scaledPoints, connections = connections)
+        return Geometry(points = scaledPoints, connections = connections, scale = scale)
     }
 
     private fun buildConnections(points: List<ScaledPoint>): List<Pair<ScaledPoint, ScaledPoint>> {
