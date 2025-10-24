@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.example.pcovviewer.PcoParser.PcoPoint
@@ -136,9 +137,17 @@ object PdfExporter {
         connections: List<Pair<ScaledPoint, ScaledPoint>>,
         paint: Paint
     ) {
-        connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+        if (connections.isEmpty()) {
+            return
         }
+
+        // Build a single vector path to keep the stroke commands in the PDF as geometry
+        val path = Path()
+        connections.forEach { (start, end) ->
+            path.moveTo(start.x, start.y)
+            path.lineTo(end.x, end.y)
+        }
+        canvas.drawPath(path, paint)
     }
 
     private fun drawPoints(
@@ -151,9 +160,18 @@ object PdfExporter {
         labelOffsetY: Float,
         lineSpacing: Float
     ) {
-        points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, pointRadius, pointPaint)
+        if (points.isEmpty()) {
+            return
+        }
 
+        // Circles are also drawn as vector paths so they stay sharp on zoom
+        val path = Path()
+        points.forEach { scaledPoint ->
+            path.addCircle(scaledPoint.x, scaledPoint.y, pointRadius, Path.Direction.CW)
+        }
+        canvas.drawPath(path, pointPaint)
+
+        points.forEach { scaledPoint ->
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
                 lines = labelLines,
