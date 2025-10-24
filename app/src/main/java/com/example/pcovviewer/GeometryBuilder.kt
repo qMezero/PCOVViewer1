@@ -86,6 +86,7 @@ object GeometryBuilder {
                 val sequentialPrevious = pointsByNumber[scaledPoint.point.number - 1]
                 val previous = previousByCode[info.baseCode]
 
+                if (
                 when {
                     sequentialPrevious != null &&
                         sequentialPrevious.point.codeInfo.baseCode == info.baseCode -> {
@@ -107,6 +108,8 @@ object GeometryBuilder {
                     sequentialPrevious.point.codeInfo.baseCode == info.baseCode
                 ) {
                     addConnection(sequentialPrevious, scaledPoint)
+                } else if (previous != null && previous.point.number == scaledPoint.point.number - 1) {
+                    addConnection(previous, scaledPoint)
                 }
             }
 
