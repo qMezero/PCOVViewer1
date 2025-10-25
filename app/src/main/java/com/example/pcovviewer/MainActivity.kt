@@ -203,10 +203,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (layerStates.isEmpty()) {
-            layerButton.isEnabled = false
+            layerButton.isEnabled = true
+            layerButton.alpha = 0.6f
             layerButton.text = getString(R.string.layers_button_default)
         } else {
             layerButton.isEnabled = true
+            layerButton.alpha = 1f
             val activeCount = layerStates.count { it.isEnabled }
             val totalCount = layerStates.size
             layerButton.text = getString(R.string.layers_button_with_count, activeCount, totalCount)
