@@ -43,15 +43,14 @@ object GeometryBuilder {
             return null
         }
 
-        val visiblePoints = points.filterNot { CodeRules.isHidden(it) }
-        if (visiblePoints.isEmpty()) {
+        if (points.isEmpty()) {
             return null
         }
 
-        val minX = visiblePoints.minOf { it.x }
-        val maxX = visiblePoints.maxOf { it.x }
-        val minY = visiblePoints.minOf { it.y }
-        val maxY = visiblePoints.maxOf { it.y }
+        val minX = points.minOf { it.x }
+        val maxX = points.maxOf { it.x }
+        val minY = points.minOf { it.y }
+        val maxY = points.maxOf { it.y }
 
         val spanX = max(maxX - minX, 1e-6f)
         val spanY = max(maxY - minY, 1e-6f)
@@ -71,7 +70,7 @@ object GeometryBuilder {
         val offsetX = padding + (availableWidth - rotatedSpanX * scale) / 2f
         val offsetY = padding + (availableHeight - rotatedSpanY * scale) / 2f
 
-        val scaledPoints = visiblePoints.map { point ->
+        val scaledPoints = points.map { point ->
             val rotatedX = offsetX + (point.y - minY) * scale
             val flippedY = offsetY + (maxX - point.x) * scale
             ScaledPoint(point, rotatedX, flippedY)

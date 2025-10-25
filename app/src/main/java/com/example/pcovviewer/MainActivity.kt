@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
             layerStates += LayerState(
                 baseCode = key,
                 count = points.size,
-                isEnabled = true
+                isEnabled = CodeRules.isDefaultEnabled(key)
             )
         }
     }
