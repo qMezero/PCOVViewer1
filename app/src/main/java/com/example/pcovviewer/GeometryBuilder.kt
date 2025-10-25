@@ -1,5 +1,6 @@
 package com.example.pcovviewer
 
+import java.util.LinkedHashMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -12,12 +13,23 @@ data class ScaledPoint(
     val y: Float
 )
 
+enum class ConnectionStyle {
+    SOLID,
+    DOTTED
+}
+
+data class Connection(
+    val start: ScaledPoint,
+    val end: ScaledPoint,
+    val style: ConnectionStyle
+)
+
 /**
  * Aggregates geometry needed for both on-screen preview and PDF export.
  */
 data class Geometry(
     val points: List<ScaledPoint>,
-    val connections: List<Pair<ScaledPoint, ScaledPoint>>,
+    val connections: List<Connection>,
     val scale: Float
 )
 
@@ -70,20 +82,21 @@ object GeometryBuilder {
         return Geometry(points = scaledPoints, connections = connections, scale = scale)
     }
 
-    private fun buildConnections(points: List<ScaledPoint>): List<Pair<ScaledPoint, ScaledPoint>> {
+    private fun buildConnections(points: List<ScaledPoint>): List<Connection> {
         if (points.isEmpty()) return emptyList()
 
         val pointsByNumber = points.associateBy { it.point.number }
         val sortedNumbers = pointsByNumber.keys.sorted()
-        val result = mutableListOf<Pair<ScaledPoint, ScaledPoint>>()
-        val deduplicationSet = mutableSetOf<Long>()
+        val deduplicationMap = LinkedHashMap<Long, Connection>()
 
-        fun addConnection(from: ScaledPoint, to: ScaledPoint) {
+        fun addConnection(from: ScaledPoint, to: ScaledPoint, style: ConnectionStyle) {
             if (from === to) return
             if (shouldSkipConnection(from, to)) return
+
             val key = orderedConnectionKey(from.point.number, to.point.number)
-            if (deduplicationSet.add(key)) {
-                result += from to to
+            val existing = deduplicationMap[key]
+            if (existing == null || (existing.style == ConnectionStyle.SOLID && style == ConnectionStyle.DOTTED)) {
+                deduplicationMap[key] = Connection(start = from, end = to, style = style)
             }
         }
 
@@ -93,18 +106,23 @@ object GeometryBuilder {
             val previous = pointsByNumber[number - 1]
             val info = current.point.codeInfo
             if (previous != null && info.connectsToPrevious && info.connectionTargets.isEmpty()) {
-                addConnection(previous, current)
+                val style = if (isDottedPreviousConnection(current.point)) {
+                    ConnectionStyle.DOTTED
+                } else {
+                    ConnectionStyle.SOLID
+                }
+                addConnection(previous, current, style)
             }
 
             info.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    addConnection(current, target)
+                    addConnection(current, target, ConnectionStyle.SOLID)
                 }
             }
         }
 
-        return result
+        return deduplicationMap.values.toList()
     }
 
     private fun shouldSkipConnection(first: ScaledPoint, second: ScaledPoint): Boolean {
@@ -145,6 +163,11 @@ object GeometryBuilder {
 
         return lowerPointNames.any { candidate -> candidate.equals(suffix, ignoreCase = true) }
     }
+}
+
+private fun isDottedPreviousConnection(point: PcoParser.PcoPoint): Boolean {
+    val trimmedCode = point.code.trim()
+    return point.codeInfo.baseCode == "30" && trimmedCode.equals("30..", ignoreCase = false)
 }
 
 private val nonNameAttributeKeys = setOf("4", "5", "37", "38", "39")

@@ -13,4 +13,6 @@ object DrawingStyle {
     const val BASE_LABEL_OFFSET_X: Float = 6f
     const val BASE_LABEL_OFFSET_Y: Float = 6f
     const val BASE_LINE_SPACING: Float = 2f
+    const val BASE_DASH_INTERVAL: Float = 12f
+    const val BASE_DASH_GAP: Float = 12f
 }

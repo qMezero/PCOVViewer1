@@ -3,8 +3,9 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.Color
+import android.graphics.DashPathEffect
+import android.graphics.Paint
 import android.graphics.Path
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -82,7 +83,10 @@ object PdfExporter {
                 this.strokeWidth = strokeWidth
             }
 
-            drawConnections(canvas, geometry.connections, linePaint)
+            val dashInterval = (DrawingStyle.BASE_DASH_INTERVAL * clampedScale).coerceAtLeast(1f)
+            val dashGap = (DrawingStyle.BASE_DASH_GAP * clampedScale).coerceAtLeast(1f)
+
+            drawConnections(canvas, geometry.connections, linePaint, dashInterval, dashGap)
             drawPoints(
                 canvas = canvas,
                 points = geometry.points,
@@ -138,20 +142,49 @@ object PdfExporter {
 
     private fun drawConnections(
         canvas: Canvas,
-        connections: List<Pair<ScaledPoint, ScaledPoint>>,
-        paint: Paint
+        connections: List<Connection>,
+        paint: Paint,
+        dashInterval: Float,
+        dashGap: Float
     ) {
         if (connections.isEmpty()) {
             return
         }
 
-        // Build a single vector path to keep the stroke commands in the PDF as geometry
-        val path = Path()
-        connections.forEach { (start, end) ->
-            path.moveTo(start.x, start.y)
-            path.lineTo(end.x, end.y)
+        // Build vector paths to keep the stroke commands in the PDF as geometry
+        val solidPath = Path()
+        val dottedPath = Path()
+        var hasSolid = false
+        var hasDotted = false
+
+        connections.forEach { connection ->
+            val start = connection.start
+            val end = connection.end
+            when (connection.style) {
+                ConnectionStyle.SOLID -> {
+                    solidPath.moveTo(start.x, start.y)
+                    solidPath.lineTo(end.x, end.y)
+                    hasSolid = true
+                }
+
+                ConnectionStyle.DOTTED -> {
+                    dottedPath.moveTo(start.x, start.y)
+                    dottedPath.lineTo(end.x, end.y)
+                    hasDotted = true
+                }
+            }
         }
-        canvas.drawPath(path, paint)
+
+        if (hasSolid) {
+            paint.pathEffect = null
+            canvas.drawPath(solidPath, paint)
+        }
+
+        if (hasDotted) {
+            paint.pathEffect = DashPathEffect(floatArrayOf(dashInterval, dashGap), 0f)
+            canvas.drawPath(dottedPath, paint)
+            paint.pathEffect = null
+        }
     }
 
     private fun drawPoints(

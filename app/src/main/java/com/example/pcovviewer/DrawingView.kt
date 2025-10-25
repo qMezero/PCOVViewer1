@@ -2,6 +2,7 @@ package com.example.pcovviewer
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -21,9 +22,16 @@ class DrawingView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    private val linePaint = Paint().apply {
+    private val solidLinePaint = Paint().apply {
         color = DrawingStyle.LINE_COLOR
         isAntiAlias = true
+        style = Paint.Style.STROKE
+    }
+
+    private val dottedLinePaint = Paint().apply {
+        color = DrawingStyle.LINE_COLOR
+        isAntiAlias = true
+        style = Paint.Style.STROKE
     }
 
     private val textPaint = Paint().apply {
@@ -37,6 +45,8 @@ class DrawingView @JvmOverloads constructor(
     private val baseLabelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X
     private val baseLabelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y
     private val baseLineSpacing = DrawingStyle.BASE_LINE_SPACING
+    private val baseDashInterval = DrawingStyle.BASE_DASH_INTERVAL
+    private val baseDashGap = DrawingStyle.BASE_DASH_GAP
 
     private var scaleFactor = 1f
     private var panX = 0f
@@ -83,15 +93,28 @@ class DrawingView @JvmOverloads constructor(
         val labelOffsetY = baseLabelOffsetY / scaleFactor
         val lineSpacing = baseLineSpacing / scaleFactor
 
-        linePaint.strokeWidth = adjustedStrokeWidth
+        solidLinePaint.strokeWidth = adjustedStrokeWidth
+        solidLinePaint.pathEffect = null
+        dottedLinePaint.strokeWidth = adjustedStrokeWidth
+        dottedLinePaint.pathEffect = DashPathEffect(
+            floatArrayOf(baseDashInterval / scaleFactor, baseDashGap / scaleFactor),
+            0f
+        )
+
         textPaint.textSize = adjustedTextSize
 
         canvas.save()
         canvas.translate(panX, panY)
         canvas.scale(scaleFactor, scaleFactor)
 
-        geometry.connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, linePaint)
+        geometry.connections.forEach { connection ->
+            val paint = when (connection.style) {
+                ConnectionStyle.SOLID -> solidLinePaint
+                ConnectionStyle.DOTTED -> dottedLinePaint
+            }
+            val start = connection.start
+            val end = connection.end
+            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
         }
 
         geometry.points.forEach { scaledPoint ->
