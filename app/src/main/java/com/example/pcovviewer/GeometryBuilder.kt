@@ -23,6 +23,9 @@ data class Geometry(
 
 object GeometryBuilder {
 
+    private const val EDGE_PADDING_FRACTION = 0.05f
+    private const val MIN_EDGE_PADDING = 24f
+
     fun build(points: List<PcoParser.PcoPoint>, width: Float, height: Float): Geometry? {
         if (width <= 0f || height <= 0f) {
             return null
@@ -44,12 +47,17 @@ object GeometryBuilder {
         val rotatedSpanX = spanY
         val rotatedSpanY = spanX
 
-        val scaleX = width / rotatedSpanX
-        val scaleY = height / rotatedSpanY
+        val minDimension = min(width, height)
+        val padding = max(MIN_EDGE_PADDING, minDimension * EDGE_PADDING_FRACTION)
+        val availableWidth = max(width - padding * 2f, 1f)
+        val availableHeight = max(height - padding * 2f, 1f)
+
+        val scaleX = availableWidth / rotatedSpanX
+        val scaleY = availableHeight / rotatedSpanY
         val scale = min(scaleX, scaleY)
 
-        val offsetX = (width - rotatedSpanX * scale) / 2f
-        val offsetY = (height - rotatedSpanY * scale) / 2f
+        val offsetX = padding + (availableWidth - rotatedSpanX * scale) / 2f
+        val offsetY = padding + (availableHeight - rotatedSpanY * scale) / 2f
 
         val scaledPoints = visiblePoints.map { point ->
             val rotatedX = offsetX + (point.y - minY) * scale

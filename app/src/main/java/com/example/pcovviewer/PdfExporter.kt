@@ -16,9 +16,10 @@ object PdfExporter {
 
     private var lastPdfFile: File? = null
 
-    private const val PDF_POINT_RADIUS_MULTIPLIER = 0.5f
+    private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
     private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 1f
+    private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
 
     fun exportToPdf(context: Context, points: List<PcoPoint>): File? {
         if (points.isEmpty()) {
@@ -56,7 +57,7 @@ object PdfExporter {
             val clampedScale = relativeScale.coerceAtMost(1f)
 
             val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
-            val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale
+            val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
