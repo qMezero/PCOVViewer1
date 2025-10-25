@@ -92,15 +92,6 @@ class DrawingView @JvmOverloads constructor(
         val labelOffsetX = baseLabelOffsetX / scaleFactor
         val labelOffsetY = baseLabelOffsetY / scaleFactor
         val lineSpacing = baseLineSpacing / scaleFactor
-        val clusterThreshold = if (scaleFactor > 0f) {
-            DrawingStyle.BASE_LABEL_CLUSTER_SCREEN_DISTANCE / scaleFactor
-        } else {
-            Float.MAX_VALUE
-        }
-        val visibleLabelNumbers = LabelVisibilityDecider.determineVisibleLabelNumbers(
-            geometry.points,
-            clusterThreshold
-        )
 
         solidLinePaint.strokeWidth = adjustedStrokeWidth
         solidLinePaint.pathEffect = null
@@ -129,17 +120,15 @@ class DrawingView @JvmOverloads constructor(
         geometry.points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
 
-            if (visibleLabelNumbers.contains(scaledPoint.point.number)) {
-                val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-                drawMultilineText(
-                    labelLines,
-                    scaledPoint.x + labelOffsetX,
-                    scaledPoint.y - labelOffsetY,
-                    textPaint,
-                    lineSpacing,
-                    canvas
-                )
-            }
+            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
+            drawMultilineText(
+                labelLines,
+                scaledPoint.x + labelOffsetX,
+                scaledPoint.y - labelOffsetY,
+                textPaint,
+                lineSpacing,
+                canvas
+            )
         }
 
         canvas.restore()
