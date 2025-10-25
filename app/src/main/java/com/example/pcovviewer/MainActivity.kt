@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ExpandableListView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -119,7 +120,7 @@ class MainActivity : AppCompatActivity() {
             point.codeInfo.baseCode.takeIf { it.isNotBlank() }
         }
 
-        val sortedKeys = groups.keys.sortedWith(layerComparator)
+        val sortedKeys = groups.keys.sortedWith(LayerOrdering.comparator)
         sortedKeys.forEach { key ->
             val points = groups[key].orEmpty()
             layerStates += LayerState(
@@ -136,25 +137,26 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val labels = layerStates.map { state ->
-            val name = layerDisplayName(state)
-            getString(R.string.layers_dialog_item_format, name, state.count)
-        }.toTypedArray()
-        val checkedItems = layerStates.map { it.isEnabled }.toBooleanArray()
+        val selectionState = layerStates.associate { it.baseCode to it.isEnabled }.toMutableMap()
+        val groups = buildLayerSelectionGroups()
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_layers, null)
+        val expandableListView = dialogView.findViewById<ExpandableListView>(R.id.layersExpandableList)
+        val adapter = LayerSelectionAdapter(this, groups, selectionState)
+        expandableListView.setAdapter(adapter)
 
         AlertDialog.Builder(this)
             .setTitle(R.string.layers_dialog_title)
-            .setMultiChoiceItems(labels, checkedItems) { _, which, isChecked ->
-                checkedItems[which] = isChecked
-            }
+            .setView(dialogView)
             .setPositiveButton(R.string.layers_dialog_apply) { _, _ ->
-                layerStates.forEachIndexed { index, layer ->
-                    layer.isEnabled = checkedItems[index]
+                layerStates.forEach { state ->
+                    state.isEnabled = selectionState[state.baseCode] ?: false
                 }
                 applyLayerFilter()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setNeutralButton(R.string.layers_dialog_select_all) { _, _ ->
+                selectionState.keys.forEach { key -> selectionState[key] = true }
                 layerStates.forEach { it.isEnabled = true }
                 applyLayerFilter()
             }
@@ -172,7 +174,10 @@ class MainActivity : AppCompatActivity() {
         visiblePoints = if (layerStates.isEmpty()) {
             loadedPoints
         } else {
-            val activeLayers = layerStates.filter { it.isEnabled }.map { it.baseCode }.toSet()
+            val activeLayers = layerStates
+                .filter { it.isEnabled }
+                .map { it.baseCode }
+                .toSet()
             if (activeLayers.isEmpty()) {
                 emptyList()
             } else {
@@ -193,8 +198,72 @@ class MainActivity : AppCompatActivity() {
 
     private fun layerDisplayName(layer: LayerState): String {
         return layer.baseCode?.let { code ->
-            getString(R.string.layers_layer_with_code, code)
+            LayerDefinitions.codeDisplayName(this, code)
+                ?: getString(R.string.layers_layer_with_code, code)
         } ?: getString(R.string.layers_layer_without_code)
+    }
+
+    private fun buildLayerSelectionGroups(): List<LayerSelectionGroup> {
+        val statesByCode = layerStates.associateBy { it.baseCode }
+        val result = mutableListOf<LayerSelectionGroup>()
+
+        LayerDefinitions.groups.forEach { definition ->
+            val items = definition.codes.mapNotNull { codeDefinition ->
+                val state = statesByCode[codeDefinition.code]
+                state?.let {
+                    LayerSelectionItem(
+                        baseCode = codeDefinition.code,
+                        displayName = getString(codeDefinition.nameRes),
+                        count = state.count
+                    )
+                }
+            }
+            if (items.isNotEmpty()) {
+                result += LayerSelectionGroup(
+                    title = getString(definition.titleRes),
+                    items = items
+                )
+            }
+        }
+
+        val otherStates = layerStates
+            .filter { state ->
+                val code = state.baseCode
+                code != null && !LayerDefinitions.isKnownCode(code)
+            }
+            .sortedWith { first, second ->
+                LayerOrdering.comparator.compare(first.baseCode, second.baseCode)
+            }
+
+        if (otherStates.isNotEmpty()) {
+            val otherItems = otherStates.map { state ->
+                LayerSelectionItem(
+                    baseCode = state.baseCode,
+                    displayName = layerDisplayName(state),
+                    count = state.count
+                )
+            }
+            result += LayerSelectionGroup(
+                title = getString(R.string.layers_group_other),
+                items = otherItems
+            )
+        }
+
+        val noCodeState = layerStates.firstOrNull { it.baseCode == null }
+        if (noCodeState != null) {
+            result += LayerSelectionGroup(
+                title = getString(R.string.layers_group_no_code),
+                items = listOf(
+                    LayerSelectionItem(
+                        baseCode = null,
+                        displayName = getString(R.string.layers_layer_without_code),
+                        count = noCodeState.count
+                    )
+                )
+            )
+        }
+
+        return result
     }
 
     private fun updateLayerButtonState() {
@@ -215,22 +284,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val layerComparator = Comparator<String?> { first, second ->
-        if (first == null && second == null) {
-            0
-        } else if (first == null) {
-            -1
-        } else if (second == null) {
-            1
-        } else {
-            val firstInt = first.toIntOrNull()
-            val secondInt = second.toIntOrNull()
-            when {
-                firstInt != null && secondInt != null -> firstInt.compareTo(secondInt)
-                firstInt != null -> -1
-                secondInt != null -> 1
-                else -> first.compareTo(second)
-            }
-        }
-    }
 }
