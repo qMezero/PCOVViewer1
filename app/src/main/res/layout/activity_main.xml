@@ -27,6 +27,16 @@
         android:textSize="18sp" />
 
     <Button
+        android:id="@+id/buttonLayers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/rounded_button"
+        android:text="@string/layers_button_default"
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
+
+    <Button
         android:id="@+id/buttonSavePdf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
