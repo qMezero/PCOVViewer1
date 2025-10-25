@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.RectF
 import android.net.Uri
 import androidx.core.content.FileProvider
 import com.example.pcovviewer.PcoParser.PcoPoint
@@ -155,8 +154,6 @@ object PdfExporter {
         // Build vector paths to keep the stroke commands in the PDF as geometry
         val solidPath = Path()
         val dottedPath = Path()
-        val solidArcs = mutableListOf<ArcParameters>()
-        val dottedArcs = mutableListOf<ArcParameters>()
         var hasSolid = false
         var hasDotted = false
 
@@ -165,25 +162,15 @@ object PdfExporter {
             val end = connection.end
             when (connection.style) {
                 ConnectionStyle.SOLID -> {
-                    val arc = connection.arc
-                    if (arc != null) {
-                        solidArcs += arc
-                    } else {
-                        solidPath.moveTo(start.x, start.y)
-                        solidPath.lineTo(end.x, end.y)
-                        hasSolid = true
-                    }
+                    solidPath.moveTo(start.x, start.y)
+                    solidPath.lineTo(end.x, end.y)
+                    hasSolid = true
                 }
 
                 ConnectionStyle.DOTTED -> {
-                    val arc = connection.arc
-                    if (arc != null) {
-                        dottedArcs += arc
-                    } else {
-                        dottedPath.moveTo(start.x, start.y)
-                        dottedPath.lineTo(end.x, end.y)
-                        hasDotted = true
-                    }
+                    dottedPath.moveTo(start.x, start.y)
+                    dottedPath.lineTo(end.x, end.y)
+                    hasDotted = true
                 }
             }
         }
@@ -193,37 +180,9 @@ object PdfExporter {
             canvas.drawPath(solidPath, paint)
         }
 
-        if (solidArcs.isNotEmpty()) {
-            paint.pathEffect = null
-            val rect = RectF()
-            solidArcs.forEach { arc ->
-                rect.set(
-                    arc.centerX - arc.radius,
-                    arc.centerY - arc.radius,
-                    arc.centerX + arc.radius,
-                    arc.centerY + arc.radius
-                )
-                canvas.drawArc(rect, arc.startAngleDegrees, arc.sweepAngleDegrees, false, paint)
-            }
-        }
-
-        if (hasDotted || dottedArcs.isNotEmpty()) {
+        if (hasDotted) {
             paint.pathEffect = DashPathEffect(floatArrayOf(dashInterval, dashGap), 0f)
-            if (hasDotted) {
-                canvas.drawPath(dottedPath, paint)
-            }
-            if (dottedArcs.isNotEmpty()) {
-                val rect = RectF()
-                dottedArcs.forEach { arc ->
-                    rect.set(
-                        arc.centerX - arc.radius,
-                        arc.centerY - arc.radius,
-                        arc.centerX + arc.radius,
-                        arc.centerY + arc.radius
-                    )
-                    canvas.drawArc(rect, arc.startAngleDegrees, arc.sweepAngleDegrees, false, paint)
-                }
-            }
+            canvas.drawPath(dottedPath, paint)
             paint.pathEffect = null
         }
     }
