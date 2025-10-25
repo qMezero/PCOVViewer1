@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
     private val layerStates = mutableListOf<LayerState>()
+    private var exportAfterDirectorySelection = false
 
     private data class LayerState(
         val baseCode: String?,
@@ -42,6 +43,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private val exportDirectoryLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            if (uri != null) {
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                try {
+                    contentResolver.takePersistableUriPermission(uri, flags)
+                } catch (_: SecurityException) {
+                    // Игнорируем невозможность сохранить разрешения и продолжаем без них.
+                }
+                saveExportDirectory(uri)
+
+                if (exportAfterDirectorySelection && visiblePoints.isNotEmpty()) {
+                    exportVisiblePoints(uri)
+                } else {
+                    Toast.makeText(this, R.string.save_pdf_directory_saved, Toast.LENGTH_SHORT).show()
+                }
+            } else if (exportAfterDirectorySelection) {
+                Toast.makeText(this, R.string.save_pdf_directory_not_selected, Toast.LENGTH_SHORT).show()
+            }
+
+            exportAfterDirectorySelection = false
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -59,21 +83,10 @@ class MainActivity : AppCompatActivity() {
         loadButton.setOnClickListener { openFilePicker() }
 
         // Сохранение PDF
-        savePdfButton.setOnClickListener {
-            if (visiblePoints.isEmpty()) {
-                Toast.makeText(this, "Нет данных для сохранения", Toast.LENGTH_SHORT).show()
-            } else {
-                val file = PdfExporter.exportToPdf(this, visiblePoints)
-                if (file != null) {
-                    Toast.makeText(
-                        this,
-                        "PDF сохранён: ${file.absolutePath}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(this, "Не удалось сохранить PDF", Toast.LENGTH_LONG).show()
-                }
-            }
+        savePdfButton.setOnClickListener { handleExportRequest(forceDirectorySelection = false) }
+        savePdfButton.setOnLongClickListener {
+            handleExportRequest(forceDirectorySelection = true)
+            true
         }
 
         // Открытие последнего PDF
@@ -82,6 +95,58 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "PDF ещё не создан", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun handleExportRequest(forceDirectorySelection: Boolean) {
+        if (visiblePoints.isEmpty()) {
+            Toast.makeText(this, R.string.save_pdf_no_data, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val savedDirectory = getSavedExportDirectory()
+        if (forceDirectorySelection || savedDirectory == null) {
+            exportAfterDirectorySelection = true
+            Toast.makeText(this, R.string.save_pdf_choose_directory, Toast.LENGTH_SHORT).show()
+            exportDirectoryLauncher.launch(savedDirectory)
+        } else {
+            exportVisiblePoints(savedDirectory)
+        }
+    }
+
+    private fun exportVisiblePoints(directoryUri: Uri?) {
+        val result = PdfExporter.exportToPdf(this, visiblePoints, directoryUri)
+        if (result != null) {
+            Toast.makeText(
+                this,
+                getString(R.string.save_pdf_success, result.description),
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            if (directoryUri != null) {
+                clearExportDirectory()
+            }
+            Toast.makeText(this, R.string.save_pdf_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun saveExportDirectory(uri: Uri) {
+        getSharedPreferences(PREFS_EXPORT, MODE_PRIVATE)
+            .edit()
+            .putString(KEY_EXPORT_DIRECTORY, uri.toString())
+            .apply()
+    }
+
+    private fun getSavedExportDirectory(): Uri? {
+        val uriString = getSharedPreferences(PREFS_EXPORT, MODE_PRIVATE)
+            .getString(KEY_EXPORT_DIRECTORY, null)
+        return uriString?.let(Uri::parse)
+    }
+
+    private fun clearExportDirectory() {
+        getSharedPreferences(PREFS_EXPORT, MODE_PRIVATE)
+            .edit()
+            .remove(KEY_EXPORT_DIRECTORY)
+            .apply()
     }
 
     private fun openFilePicker() {
@@ -282,6 +347,11 @@ class MainActivity : AppCompatActivity() {
             val totalCount = layerStates.size
             layerButton.text = getString(R.string.layers_button_with_count, activeCount, totalCount)
         }
+    }
+
+    companion object {
+        private const val PREFS_EXPORT = "export_prefs"
+        private const val KEY_EXPORT_DIRECTORY = "export_directory"
     }
 
 }

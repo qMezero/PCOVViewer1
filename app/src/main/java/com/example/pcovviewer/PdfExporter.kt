@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.documentfile.provider.DocumentFile
 import com.example.pcovviewer.PcoParser.PcoPoint
 import java.io.File
 import java.io.FileOutputStream
@@ -16,18 +17,22 @@ import java.io.FileOutputStream
 object PdfExporter {
 
     private var lastPdfFile: File? = null
+    private var lastPdfUri: Uri? = null
 
     private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
     private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 1f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
 
-    fun exportToPdf(context: Context, points: List<PcoPoint>): File? {
+    data class ExportResult(val uri: Uri, val description: String)
+
+    fun exportToPdf(context: Context, points: List<PcoPoint>, targetDirectoryUri: Uri?): ExportResult? {
         if (points.isEmpty()) {
             return null
         }
 
-        val file = File(context.getExternalFilesDir(null), "drawing_${System.currentTimeMillis()}.pdf")
+        val fileNameBase = "drawing_${System.currentTimeMillis()}"
+        val fileName = "$fileNameBase.pdf"
 
         return try {
             val pdfDocument = android.graphics.pdf.PdfDocument()
@@ -99,22 +104,68 @@ object PdfExporter {
             )
 
             pdfDocument.finishPage(page)
-            FileOutputStream(file).use { output ->
-                pdfDocument.writeTo(output)
-            }
-            pdfDocument.close()
 
-            lastPdfFile = file
-            file
+            val result = if (targetDirectoryUri != null) {
+                val directory = DocumentFile.fromTreeUri(context, targetDirectoryUri)
+                val documentFile = directory?.createFile("application/pdf", fileNameBase)
+                    ?: run {
+                        pdfDocument.close()
+                        return null
+                    }
+
+                context.contentResolver.openOutputStream(documentFile.uri)?.use { output ->
+                    pdfDocument.writeTo(output)
+                } ?: run {
+                    pdfDocument.close()
+                    return null
+                }
+
+                pdfDocument.close()
+
+                lastPdfUri = documentFile.uri
+                lastPdfFile = null
+
+                ExportResult(documentFile.uri, documentFile.name ?: fileName)
+            } else {
+                val file = File(context.getExternalFilesDir(null), fileName)
+                FileOutputStream(file).use { output ->
+                    pdfDocument.writeTo(output)
+                }
+                pdfDocument.close()
+
+                lastPdfFile = file
+                lastPdfUri = null
+
+                ExportResult(Uri.fromFile(file), file.absolutePath)
+            }
+
+            result
         } catch (e: Exception) {
             null
         }
     }
 
     fun openLastPdf(context: Context): Boolean {
+        lastPdfUri?.let { uri ->
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            }
+
+            return try {
+                context.startActivity(intent)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+
         val file = lastPdfFile ?: run {
             val pdfs = context.getExternalFilesDir(null)?.listFiles { f -> f.extension == "pdf" }
-            pdfs?.maxByOrNull { it.lastModified() }
+            val latest = pdfs?.maxByOrNull { it.lastModified() }
+            lastPdfFile = latest
+            lastPdfUri = null
+            latest
         }
 
         if (file != null && file.exists()) {
