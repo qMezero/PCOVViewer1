@@ -63,6 +63,11 @@ object PdfExporter {
             val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val labelClusterThreshold = if (clampedScale > 0f) {
+                DrawingStyle.BASE_LABEL_CLUSTER_SCREEN_DISTANCE / clampedScale
+            } else {
+                Float.MAX_VALUE
+            }
 
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
@@ -95,7 +100,8 @@ object PdfExporter {
                 pointRadius = pointRadius,
                 labelOffsetX = labelOffsetX,
                 labelOffsetY = labelOffsetY,
-                lineSpacing = lineSpacing
+                lineSpacing = lineSpacing,
+                labelClusterThreshold = labelClusterThreshold
             )
 
             pdfDocument.finishPage(page)
@@ -195,7 +201,8 @@ object PdfExporter {
         pointRadius: Float,
         labelOffsetX: Float,
         labelOffsetY: Float,
-        lineSpacing: Float
+        lineSpacing: Float,
+        labelClusterThreshold: Float
     ) {
         if (points.isEmpty()) {
             return
@@ -208,16 +215,23 @@ object PdfExporter {
         }
         canvas.drawPath(path, pointPaint)
 
+        val visibleLabelNumbers = LabelVisibilityDecider.determineVisibleLabelNumbers(
+            points,
+            labelClusterThreshold
+        )
+
         points.forEach { scaledPoint ->
-            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            drawMultilineText(
-                lines = labelLines,
-                x = scaledPoint.x + labelOffsetX,
-                y = scaledPoint.y - labelOffsetY,
-                paint = textPaint,
-                lineSpacing = lineSpacing,
-                canvas = canvas
-            )
+            if (visibleLabelNumbers.contains(scaledPoint.point.number)) {
+                val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
+                drawMultilineText(
+                    lines = labelLines,
+                    x = scaledPoint.x + labelOffsetX,
+                    y = scaledPoint.y - labelOffsetY,
+                    paint = textPaint,
+                    lineSpacing = lineSpacing,
+                    canvas = canvas
+                )
+            }
         }
     }
 
