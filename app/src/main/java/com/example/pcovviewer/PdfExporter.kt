@@ -6,21 +6,16 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
-import androidx.core.content.FileProvider
 import com.example.pcovviewer.PcoParser.PcoPoint
-import java.io.File
-import java.io.FileOutputStream
 
 object PdfExporter {
 
-    private var lastPdfFile: File? = null
+    private var lastPdfUri: Uri? = null
 
-    fun exportToPdf(context: Context, points: List<PcoPoint>): File? {
+    fun exportToPdf(context: Context, points: List<PcoPoint>, destination: Uri): Boolean {
         if (points.isEmpty()) {
-            return null
+            return false
         }
-
-        val file = File(context.getExternalFilesDir(null), "drawing_${System.currentTimeMillis()}.pdf")
 
         return try {
             val pdfDocument = android.graphics.pdf.PdfDocument()
@@ -32,7 +27,7 @@ object PdfExporter {
                 height = pageInfo.pageHeight.toFloat()
             ) ?: run {
                 pdfDocument.close()
-                return null
+                return false
             }
 
             val page = pdfDocument.startPage(pageInfo)
@@ -63,45 +58,34 @@ object PdfExporter {
             drawPoints(canvas, geometry.points, pointPaint, textPaint)
 
             pdfDocument.finishPage(page)
-            FileOutputStream(file).use { output ->
+
+            context.contentResolver.openOutputStream(destination)?.use { output ->
                 pdfDocument.writeTo(output)
-            }
+            } ?: return false
+
             pdfDocument.close()
 
-            lastPdfFile = file
-            file
+            lastPdfUri = destination
+            true
         } catch (e: Exception) {
-            null
+            false
         }
     }
 
-    fun openLastPdf(context: Context): Boolean {
-        val file = lastPdfFile ?: run {
-            val pdfs = context.getExternalFilesDir(null)?.listFiles { f -> f.extension == "pdf" }
-            pdfs?.maxByOrNull { it.lastModified() }
+    fun openLastPdf(context: Context, storedUri: Uri? = null): Boolean {
+        val uri = lastPdfUri ?: storedUri ?: return false
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        if (file != null && file.exists()) {
-            val uri: Uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                file
-            )
-
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/pdf")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            return try {
-                context.startActivity(intent)
-                true
-            } catch (e: Exception) {
-                false
-            }
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: Exception) {
+            false
         }
-
-        return false
     }
 
     private fun drawConnections(
@@ -136,3 +120,4 @@ object PdfExporter {
         }
     }
 }
+
