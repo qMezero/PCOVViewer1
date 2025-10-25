@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var openPdfButton: Button
 
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
+    private val preferences by lazy { getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
 
     // Регистрируем обработчик выбора файла
     private val openFileLauncher =
@@ -28,6 +29,31 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, "Файл не выбран", Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+
+    private val savePdfLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+            if (uri == null) {
+                Toast.makeText(this, "Файл не создан", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+                // Игнорируем, если пермишены не поддерживаются
+            }
+
+            val success = PdfExporter.exportToPdf(this, loadedPoints, uri)
+            if (success) {
+                preferences.edit().putString(KEY_LAST_PDF_URI, uri.toString()).apply()
+                Toast.makeText(this, "PDF сохранён", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Не удалось сохранить PDF", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -48,22 +74,15 @@ class MainActivity : AppCompatActivity() {
             if (loadedPoints.isEmpty()) {
                 Toast.makeText(this, "Нет данных для сохранения", Toast.LENGTH_SHORT).show()
             } else {
-                val file = PdfExporter.exportToPdf(this, loadedPoints)
-                if (file != null) {
-                    Toast.makeText(
-                        this,
-                        "PDF сохранён: ${file.absolutePath}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(this, "Не удалось сохранить PDF", Toast.LENGTH_LONG).show()
-                }
+                val fileName = "drawing_${System.currentTimeMillis()}.pdf"
+                savePdfLauncher.launch(fileName)
             }
         }
 
         // Открытие последнего PDF
         openPdfButton.setOnClickListener {
-            if (!PdfExporter.openLastPdf(this)) {
+            val storedUri = preferences.getString(KEY_LAST_PDF_URI, null)?.let(Uri::parse)
+            if (!PdfExporter.openLastPdf(this, storedUri)) {
                 Toast.makeText(this, "PDF ещё не создан", Toast.LENGTH_SHORT).show()
             }
         }
@@ -94,3 +113,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
+
+private const val PREFS_NAME = "pdf_export_prefs"
+private const val KEY_LAST_PDF_URI = "last_pdf_uri"
