@@ -86,6 +86,7 @@ object LayerDefinitions {
             listOf(
                 LayerCodeDefinition("60", R.string.layers_code_60),
                 LayerCodeDefinition("63", R.string.layers_code_63),
+                LayerCodeDefinition("65", R.string.layers_code_65),
                 LayerCodeDefinition("67", R.string.layers_code_67),
                 LayerCodeDefinition("68", R.string.layers_code_68),
                 LayerCodeDefinition("80", R.string.layers_code_80),
@@ -118,13 +119,23 @@ object LayerDefinitions {
         )
     )
 
+    private val fallbackCodeNames: Map<String, Int> = mapOf(
+        "99" to R.string.layers_code_99,
+        "998" to R.string.layers_code_998
+    )
+
     private val codeDefinitions: Map<String, LayerCodeDefinition> = groups
         .flatMap { it.codes }
         .associateBy { it.code }
 
     fun codeDisplayName(context: Context, code: String): String? {
-        val definition = codeDefinitions[code] ?: return null
-        return context.getString(definition.nameRes)
+        val definition = codeDefinitions[code]
+        if (definition != null) {
+            return context.getString(definition.nameRes)
+        }
+
+        val fallbackRes = fallbackCodeNames[code] ?: return null
+        return context.getString(fallbackRes)
     }
 
     fun isKnownCode(code: String): Boolean = codeDefinitions.containsKey(code)

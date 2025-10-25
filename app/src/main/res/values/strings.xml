@@ -72,6 +72,7 @@
     <string name="layers_code_531">531 (забор дер. на бет.)</string>
     <string name="layers_code_60">60 (бет.фонарь)</string>
     <string name="layers_code_63">63 (прожектор)</string>
+    <string name="layers_code_65">65 (бет. опора)</string>
     <string name="layers_code_67">67 (флагшток)</string>
     <string name="layers_code_68">68 (громоотвод)</string>
     <string name="layers_code_80">80 (указ.подз.ком.)</string>
@@ -88,4 +89,6 @@
     <string name="layers_code_841">841 (карл. светофор)</string>
     <string name="layers_code_90">90 (береговая линия)</string>
     <string name="layers_code_96">96 (урез воды)</string>
+    <string name="layers_code_99">99 (выс.отметка)</string>
+    <string name="layers_code_998">998 (прочие объекты)</string>
 </resources>

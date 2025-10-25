@@ -40,7 +40,30 @@ class LayerSelectionAdapter(
     ): View {
         val view = convertView ?: layoutInflater.inflate(R.layout.item_layer_group, parent, false)
         val titleView = view.findViewById<TextView>(R.id.layerGroupTitle)
-        titleView.text = getGroup(groupPosition).title
+        val checkBox = view.findViewById<CheckBox>(R.id.layerGroupCheckBox)
+        val group = getGroup(groupPosition)
+
+        titleView.text = group.title
+
+        checkBox.setOnCheckedChangeListener(null)
+
+        val totalItems = group.items.size
+        val selectedItems = group.items.count { item -> selectionState[item.baseCode] == true }
+        val hasItems = totalItems > 0
+
+        checkBox.isEnabled = hasItems
+        checkBox.isChecked = hasItems && selectedItems == totalItems
+        checkBox.alpha = if (hasItems && selectedItems in 1 until totalItems) 0.5f else 1f
+
+        if (hasItems) {
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                group.items.forEach { item ->
+                    selectionState[item.baseCode] = isChecked
+                }
+                notifyDataSetChanged()
+            }
+        }
+
         return view
     }
 
@@ -64,6 +87,7 @@ class LayerSelectionAdapter(
         checkBox.isChecked = selectionState[item.baseCode] ?: false
         checkBox.setOnCheckedChangeListener { _, isChecked ->
             selectionState[item.baseCode] = isChecked
+            notifyDataSetChanged()
         }
 
         return view
