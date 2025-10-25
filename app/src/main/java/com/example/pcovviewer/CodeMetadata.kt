@@ -46,7 +46,7 @@ data class CodeInfo(
  * Contains domain rules that depend on decoded codes, such as visibility.
  */
 object CodeRules {
-    private val hiddenBaseCodes: Set<String> = setOf(
+    private val defaultDisabledBaseCodes: Set<String> = setOf(
         "70",
         "73",
         "701",
@@ -58,9 +58,14 @@ object CodeRules {
         "731"
     )
 
-    fun isHidden(point: PcoParser.PcoPoint): Boolean = isHidden(point.codeInfo.baseCode)
+    fun isDefaultEnabled(point: PcoParser.PcoPoint): Boolean = isDefaultEnabled(point.codeInfo.baseCode)
 
-    fun isHidden(baseCode: String): Boolean = baseCode.isNotEmpty() && hiddenBaseCodes.contains(baseCode)
+    fun isDefaultEnabled(baseCode: String?): Boolean {
+        val normalized = baseCode?.takeIf { it.isNotBlank() } ?: return true
+        return !defaultDisabledBaseCodes.contains(normalized)
+    }
+
+    fun defaultDisabledCodes(): Set<String> = defaultDisabledBaseCodes
 }
 
 /**
