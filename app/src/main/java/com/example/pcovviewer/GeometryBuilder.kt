@@ -117,7 +117,12 @@ object GeometryBuilder {
             info.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    addConnection(current, target, ConnectionStyle.SOLID)
+                    val style = if (info.baseCode == "30") {
+                        ConnectionStyle.DOTTED
+                    } else {
+                        ConnectionStyle.SOLID
+                    }
+                    addConnection(current, target, style)
                 }
             }
         }
