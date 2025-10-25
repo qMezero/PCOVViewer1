@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
-import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -118,29 +117,14 @@ class DrawingView @JvmOverloads constructor(
             canvas.drawLine(start.x, start.y, end.x, end.y, paint)
         }
 
-        val occupiedLabelAreas = mutableListOf<RectF>()
-
         geometry.points.forEach { scaledPoint ->
             canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            val placement = findLabelPlacement(
-                scaledPoint.x,
-                scaledPoint.y,
-                labelLines,
-                textPaint,
-                lineSpacing,
-                labelOffsetX,
-                labelOffsetY,
-                occupiedLabelAreas
-            )
-
-            occupiedLabelAreas.add(placement.area)
-
             drawMultilineText(
                 labelLines,
-                placement.x,
-                placement.y,
+                scaledPoint.x + labelOffsetX,
+                scaledPoint.y - labelOffsetY,
                 textPaint,
                 lineSpacing,
                 canvas
@@ -148,97 +132,6 @@ class DrawingView @JvmOverloads constructor(
         }
 
         canvas.restore()
-    }
-
-    private fun findLabelPlacement(
-        pointX: Float,
-        pointY: Float,
-        lines: List<String>,
-        paint: Paint,
-        lineSpacing: Float,
-        baseOffsetX: Float,
-        baseOffsetY: Float,
-        occupiedAreas: List<RectF>
-    ): LabelPlacement {
-        if (lines.isEmpty()) {
-            val fallbackRect = RectF(pointX, pointY, pointX, pointY)
-            return LabelPlacement(pointX, pointY, fallbackRect)
-        }
-
-        val maxWidth = lines.maxOf { paint.measureText(it) }
-        val fontMetrics = paint.fontMetrics
-
-        val orientations = listOf(
-            LabelOrientation.TOP_RIGHT,
-            LabelOrientation.TOP_LEFT,
-            LabelOrientation.BOTTOM_RIGHT,
-            LabelOrientation.BOTTOM_LEFT
-        )
-
-        val maxMultiplier = 4
-
-        for (multiplier in 1..maxMultiplier) {
-            val horizontalOffset = baseOffsetX * multiplier
-            val verticalOffset = baseOffsetY * multiplier
-
-            for (orientation in orientations) {
-                val (x, y) = when (orientation) {
-                    LabelOrientation.TOP_RIGHT -> pointX + horizontalOffset to pointY - verticalOffset
-                    LabelOrientation.TOP_LEFT -> pointX - horizontalOffset - maxWidth to pointY - verticalOffset
-                    LabelOrientation.BOTTOM_RIGHT -> pointX + horizontalOffset to pointY + verticalOffset - fontMetrics.ascent
-                    LabelOrientation.BOTTOM_LEFT -> pointX - horizontalOffset - maxWidth to pointY + verticalOffset - fontMetrics.ascent
-                }
-
-                val area = computeLabelArea(x, y, lines, paint, lineSpacing, maxWidth, fontMetrics)
-
-                val intersects = occupiedAreas.any { RectF.intersects(it, area) }
-                if (!intersects) {
-                    return LabelPlacement(x, y, area)
-                }
-            }
-        }
-
-        val fallbackX = pointX + baseOffsetX
-        val fallbackY = pointY - baseOffsetY
-        val fallbackArea = computeLabelArea(
-            fallbackX,
-            fallbackY,
-            lines,
-            paint,
-            lineSpacing,
-            maxWidth,
-            fontMetrics
-        )
-        return LabelPlacement(fallbackX, fallbackY, fallbackArea)
-    }
-
-    private fun computeLabelArea(
-        x: Float,
-        y: Float,
-        lines: List<String>,
-        paint: Paint,
-        lineSpacing: Float,
-        maxWidth: Float,
-        fontMetrics: Paint.FontMetrics
-    ): RectF {
-        val area = RectF()
-
-        val firstBaseline = y
-        val lastBaseline = y + (lines.size - 1) * (paint.textSize + lineSpacing)
-        val top = firstBaseline + fontMetrics.ascent
-        val bottom = lastBaseline + fontMetrics.descent
-
-        area.set(x, top, x + maxWidth, bottom)
-        return area
-    }
-
-    private data class LabelPlacement(val x: Float, val y: Float, val area: RectF)
-
-    private enum class LabelOrientation {
-        TOP_RIGHT,
-        TOP_LEFT,
-        BOTTOM_RIGHT,
-        BOTTOM_LEFT
     }
 
     private fun drawMultilineText(
