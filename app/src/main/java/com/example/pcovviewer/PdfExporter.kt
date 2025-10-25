@@ -19,7 +19,6 @@ object PdfExporter {
 
     private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
     private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f
-    private const val PDF_DIGIT_EXTRA_SPACING_PX = 1f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
 
     fun exportToPdf(context: Context, points: List<PcoPoint>): File? {
@@ -243,16 +242,8 @@ object PdfExporter {
         lineSpacing: Float,
         canvas: Canvas
     ) {
-        val originalLetterSpacing = paint.letterSpacing
-        val digitLetterSpacing = originalLetterSpacing + (PDF_DIGIT_EXTRA_SPACING_PX / paint.textSize)
-
         lines.forEachIndexed { index, line ->
-            val isNumeric = line.all { it.isDigit() }
-            paint.letterSpacing = if (isNumeric) digitLetterSpacing else originalLetterSpacing
-
             canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
         }
-
-        paint.letterSpacing = originalLetterSpacing
     }
 }
