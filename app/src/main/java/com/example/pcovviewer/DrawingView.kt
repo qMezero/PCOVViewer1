@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -54,6 +55,8 @@ class DrawingView @JvmOverloads constructor(
     private var lastTouchX = 0f
     private var lastTouchY = 0f
     private var isPanning = false
+
+    private val arcBounds = RectF()
 
     private val scaleGestureDetector = ScaleGestureDetector(context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -112,9 +115,20 @@ class DrawingView @JvmOverloads constructor(
                 ConnectionStyle.SOLID -> solidLinePaint
                 ConnectionStyle.DOTTED -> dottedLinePaint
             }
-            val start = connection.start
-            val end = connection.end
-            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+            val arc = connection.arc
+            if (arc != null) {
+                arcBounds.set(
+                    arc.centerX - arc.radius,
+                    arc.centerY - arc.radius,
+                    arc.centerX + arc.radius,
+                    arc.centerY + arc.radius
+                )
+                canvas.drawArc(arcBounds, arc.startAngleDegrees, arc.sweepAngleDegrees, false, paint)
+            } else {
+                val start = connection.start
+                val end = connection.end
+                canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+            }
         }
 
         geometry.points.forEach { scaledPoint ->
