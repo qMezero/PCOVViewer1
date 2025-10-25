@@ -51,6 +51,7 @@ object LayerDefinitions {
             listOf(
                 LayerCodeDefinition("40", R.string.layers_code_40),
                 LayerCodeDefinition("41", R.string.layers_code_41),
+                LayerCodeDefinition("42", R.string.layers_code_42),
                 LayerCodeDefinition("43", R.string.layers_code_43),
                 LayerCodeDefinition("45", R.string.layers_code_45)
             )
