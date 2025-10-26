@@ -310,10 +310,15 @@ object PdfExporter {
             canvas.drawPath(strokePath, specialPointStrokePaint)
 
             specialPoints.forEach { scaledPoint ->
-                val metrics = specialPointTextPaint.fontMetrics
-                val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
                 val letter = DrawingStyle.specialPointLetter(scaledPoint.point.codeInfo.baseCode)
                 if (letter != null) {
+                    DrawingStyle.adjustSpecialPointTextSize(
+                        paint = specialPointTextPaint,
+                        letter = letter,
+                        radius = specialPointRadius
+                    )
+                    val metrics = specialPointTextPaint.fontMetrics
+                    val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
                     canvas.drawText(letter, scaledPoint.x, textY, specialPointTextPaint)
                 }
             }

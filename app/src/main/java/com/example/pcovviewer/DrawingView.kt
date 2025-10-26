@@ -231,6 +231,7 @@ class DrawingView @JvmOverloads constructor(
         canvas.drawCircle(x, y, radius, specialPointFillPaint)
         canvas.drawCircle(x, y, radius, specialPointStrokePaint)
 
+        DrawingStyle.adjustSpecialPointTextSize(specialPointTextPaint, letter, radius)
         val metrics = specialPointTextPaint.fontMetrics
         val textY = y - (metrics.ascent + metrics.descent) / 2f
         canvas.drawText(letter, x, textY, specialPointTextPaint)
