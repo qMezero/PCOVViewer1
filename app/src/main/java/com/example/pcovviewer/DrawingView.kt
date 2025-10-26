@@ -38,7 +38,7 @@ class DrawingView @JvmOverloads constructor(
         color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
+        isFakeBoldText = false
     }
 
     private val solidLinePaint = Paint().apply {
