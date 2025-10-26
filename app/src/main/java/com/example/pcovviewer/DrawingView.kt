@@ -38,6 +38,7 @@ class DrawingView @JvmOverloads constructor(
         color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
+        typeface = DrawingStyle.SPECIAL_POINT_TYPEFACE
         isFakeBoldText = false
     }
 
