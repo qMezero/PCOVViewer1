@@ -286,8 +286,9 @@ object PdfExporter {
             return
         }
 
-        val regularPoints = points.filterNot { it.point.codeInfo.baseCode == SPECIAL_POINT_CODE }
-        val specialPoints = points.filter { it.point.codeInfo.baseCode == SPECIAL_POINT_CODE }
+        val specialPointCodes = DrawingStyle.SPECIAL_POINT_CODES
+        val regularPoints = points.filterNot { it.point.codeInfo.baseCode in specialPointCodes }
+        val specialPoints = points.filter { it.point.codeInfo.baseCode in specialPointCodes }
 
         if (regularPoints.isNotEmpty()) {
             // Circles are also drawn as vector paths so they stay sharp on zoom
@@ -311,7 +312,10 @@ object PdfExporter {
             specialPoints.forEach { scaledPoint ->
                 val metrics = specialPointTextPaint.fontMetrics
                 val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
-                canvas.drawText(DrawingStyle.SPECIAL_POINT_LETTER, scaledPoint.x, textY, specialPointTextPaint)
+                val letter = DrawingStyle.specialPointLetter(scaledPoint.point.codeInfo.baseCode)
+                if (letter != null) {
+                    canvas.drawText(letter, scaledPoint.x, textY, specialPointTextPaint)
+                }
             }
         }
 
@@ -349,5 +353,3 @@ object PdfExporter {
         paint.letterSpacing = originalLetterSpacing
     }
 }
-
-private const val SPECIAL_POINT_CODE = "40"
