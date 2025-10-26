@@ -35,9 +35,16 @@ object DrawingStyle {
         "42" to "в"
     )
 
+    private val specialPointLetterVerticalOffsetFactors: Map<String, Float> = mapOf(
+        "в" to 0.08f
+    )
+
     val SPECIAL_POINT_CODES: Set<String> = specialPointLetters.keys
 
     fun specialPointLetter(code: String): String? = specialPointLetters[code]
+
+    fun specialPointLetterVerticalOffsetFactor(letter: String): Float =
+        specialPointLetterVerticalOffsetFactors[letter].orZero()
 
     fun adjustSpecialPointTextSize(
         paint: Paint,
@@ -64,3 +71,5 @@ object DrawingStyle {
         paint.textSize = initialTextSize * scale
     }
 }
+
+private fun Float?.orZero(): Float = this ?: 0f

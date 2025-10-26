@@ -250,6 +250,8 @@ class DrawingView @JvmOverloads constructor(
         DrawingStyle.adjustSpecialPointTextSize(specialPointTextPaint, letter, radius)
         val metrics = specialPointTextPaint.fontMetrics
         val textY = y - (metrics.ascent + metrics.descent) / 2f
-        canvas.drawText(letter, x, textY, specialPointTextPaint)
+        val verticalOffsetFactor = DrawingStyle.specialPointLetterVerticalOffsetFactor(letter)
+        val adjustedTextY = textY - radius * verticalOffsetFactor
+        canvas.drawText(letter, x, adjustedTextY, specialPointTextPaint)
     }
 }
