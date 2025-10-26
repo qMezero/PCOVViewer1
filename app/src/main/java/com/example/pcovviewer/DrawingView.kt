@@ -70,8 +70,6 @@ class DrawingView @JvmOverloads constructor(
     private val baseSpecialPointStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH
     private val specialPointTextScale = DrawingStyle.SPECIAL_POINT_TEXT_SCALE
 
-    private val specialPointCode = "40"
-
     private var scaleFactor = 1f
     private var panX = 0f
     private var panY = 0f
@@ -148,12 +146,14 @@ class DrawingView @JvmOverloads constructor(
 
         geometry.points.forEach { scaledPoint ->
             val baseCode = scaledPoint.point.codeInfo.baseCode
-            if (baseCode == specialPointCode) {
+            val specialPointLetter = DrawingStyle.specialPointLetter(baseCode)
+            if (specialPointLetter != null) {
                 drawSpecialPoint(
                     canvas = canvas,
                     x = scaledPoint.x,
                     y = scaledPoint.y,
-                    radius = adjustedSpecialPointRadius
+                    radius = adjustedSpecialPointRadius,
+                    letter = specialPointLetter
                 )
             } else {
                 canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
@@ -221,12 +221,18 @@ class DrawingView @JvmOverloads constructor(
         return true
     }
 
-    private fun drawSpecialPoint(canvas: Canvas, x: Float, y: Float, radius: Float) {
+    private fun drawSpecialPoint(
+        canvas: Canvas,
+        x: Float,
+        y: Float,
+        radius: Float,
+        letter: String
+    ) {
         canvas.drawCircle(x, y, radius, specialPointFillPaint)
         canvas.drawCircle(x, y, radius, specialPointStrokePaint)
 
         val metrics = specialPointTextPaint.fontMetrics
         val textY = y - (metrics.ascent + metrics.descent) / 2f
-        canvas.drawText(DrawingStyle.SPECIAL_POINT_LETTER, x, textY, specialPointTextPaint)
+        canvas.drawText(letter, x, textY, specialPointTextPaint)
     }
 }
