@@ -3,7 +3,6 @@ package com.example.pcovviewer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
@@ -69,8 +68,11 @@ object PdfExporter {
             val clampedScale = relativeScale.coerceAtMost(1f)
 
             val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
+            val specialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
+            val specialStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val specialPointTextSize = DrawingStyle.BASE_SPECIAL_POINT_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
@@ -80,12 +82,29 @@ object PdfExporter {
 
             val pointPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                color = Color.RED
+                color = DrawingStyle.POINT_COLOR
             }
 
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = DrawingStyle.TEXT_COLOR
                 this.textSize = textSize
+            }
+
+            val specialPointFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = DrawingStyle.SPECIAL_POINT_FILL_COLOR
+            }
+
+            val specialPointStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = DrawingStyle.POINT_COLOR
+                this.strokeWidth = specialStrokeWidth
+            }
+
+            val specialPointTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
+                textAlign = Paint.Align.CENTER
+                this.textSize = specialPointTextSize
             }
 
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -104,6 +123,10 @@ object PdfExporter {
                 pointPaint = pointPaint,
                 textPaint = textPaint,
                 pointRadius = pointRadius,
+                specialPointFillPaint = specialPointFillPaint,
+                specialPointStrokePaint = specialPointStrokePaint,
+                specialPointTextPaint = specialPointTextPaint,
+                specialPointRadius = specialPointRadius,
                 labelOffsetX = labelOffsetX,
                 labelOffsetY = labelOffsetY,
                 lineSpacing = lineSpacing
@@ -250,6 +273,10 @@ object PdfExporter {
         pointPaint: Paint,
         textPaint: Paint,
         pointRadius: Float,
+        specialPointFillPaint: Paint,
+        specialPointStrokePaint: Paint,
+        specialPointTextPaint: Paint,
+        specialPointRadius: Float,
         labelOffsetX: Float,
         labelOffsetY: Float,
         lineSpacing: Float
@@ -258,12 +285,34 @@ object PdfExporter {
             return
         }
 
-        // Circles are also drawn as vector paths so they stay sharp on zoom
-        val path = Path()
-        points.forEach { scaledPoint ->
-            path.addCircle(scaledPoint.x, scaledPoint.y, pointRadius, Path.Direction.CW)
+        val regularPoints = points.filterNot { it.point.codeInfo.baseCode == SPECIAL_POINT_CODE }
+        val specialPoints = points.filter { it.point.codeInfo.baseCode == SPECIAL_POINT_CODE }
+
+        if (regularPoints.isNotEmpty()) {
+            // Circles are also drawn as vector paths so they stay sharp on zoom
+            val path = Path()
+            regularPoints.forEach { scaledPoint ->
+                path.addCircle(scaledPoint.x, scaledPoint.y, pointRadius, Path.Direction.CW)
+            }
+            canvas.drawPath(path, pointPaint)
         }
-        canvas.drawPath(path, pointPaint)
+
+        if (specialPoints.isNotEmpty()) {
+            val fillPath = Path()
+            val strokePath = Path()
+            specialPoints.forEach { scaledPoint ->
+                fillPath.addCircle(scaledPoint.x, scaledPoint.y, specialPointRadius, Path.Direction.CW)
+                strokePath.addCircle(scaledPoint.x, scaledPoint.y, specialPointRadius, Path.Direction.CW)
+            }
+            canvas.drawPath(fillPath, specialPointFillPaint)
+            canvas.drawPath(strokePath, specialPointStrokePaint)
+
+            specialPoints.forEach { scaledPoint ->
+                val metrics = specialPointTextPaint.fontMetrics
+                val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
+                canvas.drawText(DrawingStyle.SPECIAL_POINT_LETTER, scaledPoint.x, textY, specialPointTextPaint)
+            }
+        }
 
         points.forEach { scaledPoint ->
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
@@ -299,3 +348,5 @@ object PdfExporter {
         paint.letterSpacing = originalLetterSpacing
     }
 }
+
+private const val SPECIAL_POINT_CODE = "40"
