@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PCOVViewer</string>
+    <string name="app_name">qProba</string>
     <string name="layers_button_default">Слои</string>
     <string name="layers_button_with_count">Слои (%1$d/%2$d)</string>
     <string name="layers_dialog_title">Выбор слоёв</string>
