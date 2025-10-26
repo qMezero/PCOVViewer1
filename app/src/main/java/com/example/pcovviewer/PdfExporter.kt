@@ -26,12 +26,18 @@ object PdfExporter {
 
     data class ExportResult(val uri: Uri, val description: String)
 
-    fun exportToPdf(context: Context, points: List<PcoPoint>, targetDirectoryUri: Uri?): ExportResult? {
+    fun exportToPdf(
+        context: Context,
+        points: List<PcoPoint>,
+        targetDirectoryUri: Uri?,
+        baseFileName: String?
+    ): ExportResult? {
         if (points.isEmpty()) {
             return null
         }
 
-        val fileNameBase = "drawing_${System.currentTimeMillis()}"
+        val fileNameBase = baseFileName?.let { "$it" + "proba" }
+            ?: "drawing_${System.currentTimeMillis()}"
         val fileName = "$fileNameBase.pdf"
 
         return try {
