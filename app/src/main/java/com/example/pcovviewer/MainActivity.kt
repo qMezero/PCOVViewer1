@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
     private val layerStates = mutableListOf<LayerState>()
     private var exportAfterDirectorySelection = false
+    private var currentPcoFileName: String? = null
 
     private data class LayerState(
         val baseCode: String?,
@@ -114,7 +115,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exportVisiblePoints(directoryUri: Uri?) {
-        val result = PdfExporter.exportToPdf(this, visiblePoints, directoryUri)
+        val result = PdfExporter.exportToPdf(
+            context = this,
+            points = visiblePoints,
+            targetDirectoryUri = directoryUri,
+            baseFileName = currentPcoFileName
+        )
         if (result != null) {
             Toast.makeText(
                 this,
@@ -159,6 +165,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadPcoFile(uri: Uri) {
         try {
+            val document = androidx.documentfile.provider.DocumentFile.fromSingleUri(this, uri)
+            val resolvedName = document?.name ?: uri.lastPathSegment
+            currentPcoFileName = resolvedName?.substringBeforeLast('.', missingDelimiterValue = resolvedName)
+
             val inputStream = contentResolver.openInputStream(uri)
             val content = inputStream?.bufferedReader()?.use { it.readText() } ?: ""
             val points = PcoParser.parse(content)
@@ -171,6 +181,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "Ошибка загрузки файла: ${e.message}", Toast.LENGTH_LONG).show()
+            currentPcoFileName = null
         }
     }
 
