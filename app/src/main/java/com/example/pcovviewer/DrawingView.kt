@@ -29,7 +29,7 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private val specialPointStrokePaint = Paint().apply {
-        color = DrawingStyle.POINT_COLOR
+        color = DrawingStyle.SPECIAL_POINT_STROKE_COLOR
         style = Paint.Style.STROKE
         isAntiAlias = true
     }
@@ -38,6 +38,7 @@ class DrawingView @JvmOverloads constructor(
         color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
     }
 
     private val solidLinePaint = Paint().apply {
@@ -67,7 +68,7 @@ class DrawingView @JvmOverloads constructor(
     private val baseDashGap = DrawingStyle.BASE_DASH_GAP
     private val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS
     private val baseSpecialPointStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH
-    private val baseSpecialPointTextSize = DrawingStyle.BASE_SPECIAL_POINT_TEXT_SIZE
+    private val specialPointTextScale = DrawingStyle.SPECIAL_POINT_TEXT_SCALE
 
     private val specialPointCode = "40"
 
@@ -114,7 +115,7 @@ class DrawingView @JvmOverloads constructor(
         val adjustedPointRadius = basePointRadius / scaleFactor
         val adjustedSpecialPointRadius = baseSpecialPointRadius / scaleFactor
         val adjustedSpecialStrokeWidth = baseSpecialPointStrokeWidth / scaleFactor
-        val adjustedSpecialTextSize = baseSpecialPointTextSize / scaleFactor
+        val adjustedSpecialTextSize = adjustedSpecialPointRadius * specialPointTextScale
         val labelOffsetX = baseLabelOffsetX / scaleFactor
         val labelOffsetY = baseLabelOffsetY / scaleFactor
         val lineSpacing = baseLineSpacing / scaleFactor

@@ -72,7 +72,7 @@ object PdfExporter {
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val specialStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
-            val specialPointTextSize = DrawingStyle.BASE_SPECIAL_POINT_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val specialPointTextSize = specialPointRadius * DrawingStyle.SPECIAL_POINT_TEXT_SCALE
             val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
@@ -97,7 +97,7 @@ object PdfExporter {
 
             val specialPointStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.STROKE
-                color = DrawingStyle.POINT_COLOR
+                color = DrawingStyle.SPECIAL_POINT_STROKE_COLOR
                 this.strokeWidth = specialStrokeWidth
             }
 
@@ -105,6 +105,7 @@ object PdfExporter {
                 color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
                 textAlign = Paint.Align.CENTER
                 this.textSize = specialPointTextSize
+                isFakeBoldText = true
             }
 
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
