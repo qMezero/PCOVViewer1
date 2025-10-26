@@ -105,7 +105,8 @@ object PdfExporter {
                 color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
                 textAlign = Paint.Align.CENTER
                 this.textSize = specialPointTextSize
-                isFakeBoldText = true
+                typeface = DrawingStyle.SPECIAL_POINT_TYPEFACE
+                isFakeBoldText = false
             }
 
             val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

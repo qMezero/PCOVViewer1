@@ -3,6 +3,7 @@ package com.example.pcovviewer
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.Typeface
 import kotlin.math.max
 
 object DrawingStyle {
@@ -26,6 +27,8 @@ object DrawingStyle {
     const val SPECIAL_POINT_TEXT_COLOR: Int = Color.BLACK
     const val SPECIAL_POINT_TEXT_SCALE: Float = 2.2f
     private const val SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER: Float = 1.9f
+
+    val SPECIAL_POINT_TYPEFACE: Typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
 
     private val specialPointLetters: Map<String, String> = mapOf(
         "40" to "К",
