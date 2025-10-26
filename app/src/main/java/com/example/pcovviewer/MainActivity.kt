@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savePdfButton: Button
     private lateinit var openPdfButton: Button
     private lateinit var layerButton: Button
-    private lateinit var miniPreviewButton: Button
 
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
@@ -77,13 +76,9 @@ class MainActivity : AppCompatActivity() {
         savePdfButton = findViewById(R.id.buttonSavePdf)
         openPdfButton = findViewById(R.id.buttonOpenPdf)
         layerButton = findViewById(R.id.buttonLayers)
-        miniPreviewButton = findViewById(R.id.buttonMiniPreview)
 
         layerButton.setOnClickListener { showLayerSelectionDialog() }
-        miniPreviewButton.setOnClickListener { showMiniPreviewDialog() }
-
         updateLayerButtonState()
-        updateMiniPreviewState()
 
         // Загрузка .pco
         loadButton.setOnClickListener { openFilePicker() }
@@ -249,7 +244,6 @@ class MainActivity : AppCompatActivity() {
             visiblePoints = emptyList()
             drawingView.setData(visiblePoints)
             updateLayerButtonState()
-            updateMiniPreviewState()
             return
         }
 
@@ -272,43 +266,10 @@ class MainActivity : AppCompatActivity() {
 
         drawingView.setData(visiblePoints)
         updateLayerButtonState()
-        updateMiniPreviewState()
 
         if (visiblePoints.isEmpty() && loadedPoints.isNotEmpty()) {
             Toast.makeText(this, R.string.layers_toast_no_visible_points, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun updateMiniPreviewState() {
-        if (!::miniPreviewButton.isInitialized) {
-            return
-        }
-
-        miniPreviewButton.isEnabled = visiblePoints.isNotEmpty()
-        miniPreviewButton.alpha = if (miniPreviewButton.isEnabled) 1f else 0.6f
-    }
-
-    private fun showMiniPreviewDialog() {
-        if (visiblePoints.isEmpty()) {
-            Toast.makeText(this, R.string.mini_preview_no_data, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val previewBitmap = MiniPreviewGenerator.createConnectionsPreview(visiblePoints)
-        if (previewBitmap == null) {
-            Toast.makeText(this, R.string.mini_preview_no_data, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val dialogView = layoutInflater.inflate(R.layout.dialog_mini_preview, null)
-        val imageView = dialogView.findViewById<android.widget.ImageView>(R.id.miniPreviewImage)
-        imageView.setImageBitmap(previewBitmap)
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.mini_preview_title)
-            .setView(dialogView)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
     }
 
     private fun layerDisplayName(layer: LayerState): String {

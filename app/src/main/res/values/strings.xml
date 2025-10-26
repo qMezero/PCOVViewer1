@@ -98,8 +98,4 @@
     <string name="save_pdf_failed">Не удалось сохранить PDF</string>
     <string name="save_pdf_directory_saved">Папка для экспорта сохранена</string>
     <string name="save_pdf_directory_not_selected">Папка не выбрана</string>
-    <string name="mini_preview_button">Мини-схема</string>
-    <string name="mini_preview_title">Мини-схема</string>
-    <string name="mini_preview_no_data">Нет линий для отображения в мини-схеме</string>
-    <string name="mini_preview_content_description">Миниатюра связей между выбранными кодами</string>
 </resources>
