@@ -26,7 +26,7 @@ object DrawingStyle {
     const val SPECIAL_POINT_STROKE_COLOR: Int = Color.BLACK
     const val SPECIAL_POINT_TEXT_COLOR: Int = Color.BLACK
     const val SPECIAL_POINT_TEXT_SCALE: Float = 2.2f
-    private const val SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER: Float = 1.9f
+    private const val SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER: Float = 1.7f
 
     val SPECIAL_POINT_TYPEFACE: Typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
 

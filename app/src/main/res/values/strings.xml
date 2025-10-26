@@ -19,6 +19,8 @@
     <string name="layers_group_hydrography">Гидрография</string>
     <string name="layers_group_other">Прочие</string>
     <string name="layers_group_no_code">Без кода</string>
+    <string name="layers_dialog_hide_numbers">Скрыть номера</string>
+    <string name="layers_dialog_hide_codes">Скрыть коды</string>
     <string name="layers_code_10">10 фундамент</string>
     <string name="layers_code_11">11 жилое каменное</string>
     <string name="layers_code_12">12 жилое деревянное</string>
