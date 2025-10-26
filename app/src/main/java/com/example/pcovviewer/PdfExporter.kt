@@ -29,7 +29,9 @@ object PdfExporter {
         context: Context,
         points: List<PcoPoint>,
         targetDirectoryUri: Uri?,
-        baseFileName: String?
+        baseFileName: String?,
+        showPointNumbers: Boolean,
+        showPointCodes: Boolean
     ): ExportResult? {
         if (points.isEmpty()) {
             return null
@@ -131,7 +133,9 @@ object PdfExporter {
                 specialPointRadius = specialPointRadius,
                 labelOffsetX = labelOffsetX,
                 labelOffsetY = labelOffsetY,
-                lineSpacing = lineSpacing
+                lineSpacing = lineSpacing,
+                showNumbers = showPointNumbers,
+                showCodes = showPointCodes
             )
 
             pdfDocument.finishPage(page)
@@ -281,7 +285,9 @@ object PdfExporter {
         specialPointRadius: Float,
         labelOffsetX: Float,
         labelOffsetY: Float,
-        lineSpacing: Float
+        lineSpacing: Float,
+        showNumbers: Boolean,
+        showCodes: Boolean
     ) {
         if (points.isEmpty()) {
             return
@@ -326,15 +332,21 @@ object PdfExporter {
         }
 
         points.forEach { scaledPoint ->
-            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            drawMultilineText(
-                lines = labelLines,
-                x = scaledPoint.x + labelOffsetX,
-                y = scaledPoint.y - labelOffsetY,
-                paint = textPaint,
-                lineSpacing = lineSpacing,
-                canvas = canvas
+            val labelLines = PointLabelFormatter.buildLines(
+                point = scaledPoint.point,
+                showNumbers = showNumbers,
+                showCodes = showCodes
             )
+            if (labelLines.isNotEmpty()) {
+                drawMultilineText(
+                    lines = labelLines,
+                    x = scaledPoint.x + labelOffsetX,
+                    y = scaledPoint.y - labelOffsetY,
+                    paint = textPaint,
+                    lineSpacing = lineSpacing,
+                    canvas = canvas
+                )
+            }
         }
     }
 

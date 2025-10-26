@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ExpandableListView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private val layerStates = mutableListOf<LayerState>()
     private var exportAfterDirectorySelection = false
     private var currentPcoFileName: String? = null
+    private var showPointNumbers = true
+    private var showPointCodes = true
 
     private data class LayerState(
         val baseCode: String?,
@@ -77,6 +80,8 @@ class MainActivity : AppCompatActivity() {
         openPdfButton = findViewById(R.id.buttonOpenPdf)
         layerButton = findViewById(R.id.buttonLayers)
 
+        drawingView.setLabelVisibility(showPointNumbers, showPointCodes)
+
         layerButton.setOnClickListener { showLayerSelectionDialog() }
         updateLayerButtonState()
 
@@ -119,7 +124,9 @@ class MainActivity : AppCompatActivity() {
             context = this,
             points = visiblePoints,
             targetDirectoryUri = directoryUri,
-            baseFileName = currentPcoFileName
+            baseFileName = currentPcoFileName,
+            showPointNumbers = showPointNumbers,
+            showPointCodes = showPointCodes
         )
         if (result != null) {
             Toast.makeText(
@@ -218,11 +225,26 @@ class MainActivity : AppCompatActivity() {
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_layers, null)
         val expandableListView = dialogView.findViewById<ExpandableListView>(R.id.layersExpandableList)
+        val hideNumbersCheckBox = dialogView.findViewById<CheckBox>(R.id.hideNumbersCheckBox)
+        val hideCodesCheckBox = dialogView.findViewById<CheckBox>(R.id.hideCodesCheckBox)
+
+        hideNumbersCheckBox.isChecked = !showPointNumbers
+        hideCodesCheckBox.isChecked = !showPointCodes
+
+        hideNumbersCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            showPointNumbers = !isChecked
+            drawingView.setLabelVisibility(showPointNumbers, showPointCodes)
+        }
+
+        hideCodesCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            showPointCodes = !isChecked
+            drawingView.setLabelVisibility(showPointNumbers, showPointCodes)
+        }
+
         val adapter = LayerSelectionAdapter(this, groups, selectionState)
         expandableListView.setAdapter(adapter)
 
         AlertDialog.Builder(this)
-            .setTitle(R.string.layers_dialog_title)
             .setView(dialogView)
             .setPositiveButton(R.string.layers_dialog_apply) { _, _ ->
                 layerStates.forEach { state ->

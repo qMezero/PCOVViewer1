@@ -71,6 +71,9 @@ class DrawingView @JvmOverloads constructor(
     private val baseSpecialPointStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH
     private val specialPointTextScale = DrawingStyle.SPECIAL_POINT_TEXT_SCALE
 
+    private var showPointNumbers = true
+    private var showPointCodes = true
+
     private var scaleFactor = 1f
     private var panX = 0f
     private var panY = 0f
@@ -101,6 +104,12 @@ class DrawingView @JvmOverloads constructor(
         scaleFactor = 1f
         panX = 0f
         panY = 0f
+        invalidate()
+    }
+
+    fun setLabelVisibility(showNumbers: Boolean, showCodes: Boolean) {
+        showPointNumbers = showNumbers
+        showPointCodes = showCodes
         invalidate()
     }
 
@@ -160,15 +169,21 @@ class DrawingView @JvmOverloads constructor(
                 canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
             }
 
-            val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
-            drawMultilineText(
-                labelLines,
-                scaledPoint.x + labelOffsetX,
-                scaledPoint.y - labelOffsetY,
-                textPaint,
-                lineSpacing,
-                canvas
+            val labelLines = PointLabelFormatter.buildLines(
+                point = scaledPoint.point,
+                showNumbers = showPointNumbers,
+                showCodes = showPointCodes
             )
+            if (labelLines.isNotEmpty()) {
+                drawMultilineText(
+                    labelLines,
+                    scaledPoint.x + labelOffsetX,
+                    scaledPoint.y - labelOffsetY,
+                    textPaint,
+                    lineSpacing,
+                    canvas
+                )
+            }
         }
 
         canvas.restore()
