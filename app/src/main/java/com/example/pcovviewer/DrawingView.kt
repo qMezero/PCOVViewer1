@@ -22,6 +22,24 @@ class DrawingView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
+    private val specialPointFillPaint = Paint().apply {
+        color = DrawingStyle.SPECIAL_POINT_FILL_COLOR
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val specialPointStrokePaint = Paint().apply {
+        color = DrawingStyle.POINT_COLOR
+        style = Paint.Style.STROKE
+        isAntiAlias = true
+    }
+
+    private val specialPointTextPaint = Paint().apply {
+        color = DrawingStyle.SPECIAL_POINT_TEXT_COLOR
+        isAntiAlias = true
+        textAlign = Paint.Align.CENTER
+    }
+
     private val solidLinePaint = Paint().apply {
         color = DrawingStyle.LINE_COLOR
         isAntiAlias = true
@@ -47,6 +65,11 @@ class DrawingView @JvmOverloads constructor(
     private val baseLineSpacing = DrawingStyle.BASE_LINE_SPACING
     private val baseDashInterval = DrawingStyle.BASE_DASH_INTERVAL
     private val baseDashGap = DrawingStyle.BASE_DASH_GAP
+    private val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS
+    private val baseSpecialPointStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH
+    private val baseSpecialPointTextSize = DrawingStyle.BASE_SPECIAL_POINT_TEXT_SIZE
+
+    private val specialPointCode = "40"
 
     private var scaleFactor = 1f
     private var panX = 0f
@@ -89,6 +112,9 @@ class DrawingView @JvmOverloads constructor(
         val adjustedStrokeWidth = baseStrokeWidth / scaleFactor
         val adjustedTextSize = baseTextSize / scaleFactor
         val adjustedPointRadius = basePointRadius / scaleFactor
+        val adjustedSpecialPointRadius = baseSpecialPointRadius / scaleFactor
+        val adjustedSpecialStrokeWidth = baseSpecialPointStrokeWidth / scaleFactor
+        val adjustedSpecialTextSize = baseSpecialPointTextSize / scaleFactor
         val labelOffsetX = baseLabelOffsetX / scaleFactor
         val labelOffsetY = baseLabelOffsetY / scaleFactor
         val lineSpacing = baseLineSpacing / scaleFactor
@@ -102,6 +128,8 @@ class DrawingView @JvmOverloads constructor(
         )
 
         textPaint.textSize = adjustedTextSize
+        specialPointStrokePaint.strokeWidth = adjustedSpecialStrokeWidth
+        specialPointTextPaint.textSize = adjustedSpecialTextSize
 
         canvas.save()
         canvas.translate(panX, panY)
@@ -118,7 +146,17 @@ class DrawingView @JvmOverloads constructor(
         }
 
         geometry.points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
+            val baseCode = scaledPoint.point.codeInfo.baseCode
+            if (baseCode == specialPointCode) {
+                drawSpecialPoint(
+                    canvas = canvas,
+                    x = scaledPoint.x,
+                    y = scaledPoint.y,
+                    radius = adjustedSpecialPointRadius
+                )
+            } else {
+                canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
+            }
 
             val labelLines = PointLabelFormatter.buildLines(scaledPoint.point)
             drawMultilineText(
@@ -180,5 +218,14 @@ class DrawingView @JvmOverloads constructor(
         }
 
         return true
+    }
+
+    private fun drawSpecialPoint(canvas: Canvas, x: Float, y: Float, radius: Float) {
+        canvas.drawCircle(x, y, radius, specialPointFillPaint)
+        canvas.drawCircle(x, y, radius, specialPointStrokePaint)
+
+        val metrics = specialPointTextPaint.fontMetrics
+        val textY = y - (metrics.ascent + metrics.descent) / 2f
+        canvas.drawText(DrawingStyle.SPECIAL_POINT_LETTER, x, textY, specialPointTextPaint)
     }
 }

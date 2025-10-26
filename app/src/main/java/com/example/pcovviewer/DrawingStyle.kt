@@ -15,4 +15,11 @@ object DrawingStyle {
     const val BASE_LINE_SPACING: Float = 2f
     const val BASE_DASH_INTERVAL: Float = 12f
     const val BASE_DASH_GAP: Float = 12f
+
+    const val BASE_SPECIAL_POINT_RADIUS: Float = 8f
+    const val BASE_SPECIAL_POINT_STROKE_WIDTH: Float = 2f
+    const val BASE_SPECIAL_POINT_TEXT_SIZE: Float = 14f
+    const val SPECIAL_POINT_LETTER: String = "к"
+    const val SPECIAL_POINT_FILL_COLOR: Int = Color.WHITE
+    const val SPECIAL_POINT_TEXT_COLOR: Int = Color.RED
 }
