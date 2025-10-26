@@ -36,7 +36,7 @@ object PdfExporter {
             return null
         }
 
-        val fileNameBase = baseFileName?.let { "$it" + "proba" }
+        val fileNameBase = baseFileName?.let { "$it" + "_proba" }
             ?: "drawing_${System.currentTimeMillis()}"
         val fileName = "$fileNameBase.pdf"
 
