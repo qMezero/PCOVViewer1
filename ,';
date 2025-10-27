@@ -1,0 +1,22 @@
+[33m55d39a8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtest_branch[m[33m, [m[1;31morigin/test_branch[m[33m)[m Merge pull request #13 from qMezero/codex/adjust-preview-and-pdf-layout
+[33m696a03f[m Add configurable margin when fitting schemes
+[33mf2c5557[m Merge pull request #12 from qMezero/codex/adjust-layout-for-preview-and-pdf-export
+[33mff28b89[m Merge branch 'test_branch' into codex/adjust-layout-for-preview-and-pdf-export
+[33mba354ad[m Fix shared scheme style stroke width
+[33me1ac1ee[m Merge pull request #11 from qMezero/codex/adjust-layout-for-preview-and-pdf-export
+[33mb148086[m Align PDF export with preview
+[33mac1fb3c[m Merge pull request #10 from qMezero/codex/rotate-schema-to-the-right
+[33md83f542[m Rotate default geometry orientation clockwise
+[33m2dfca40[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #5 from qMezero/codex-puj51r
+[33m6dcf0a5[m Improve DrawingView zoom rendering
+[33m33cbfda[m Merge pull request #4 from qMezero/codex/write-readme-with-program-description
+[33m96b8520[m Add project overview README
+[33m6ea24a0[m Merge pull request #3 from qMezero/codex/remove-specified-points-from-pdf-export
+[33m4459afd[m Hide additional service point codes
+[33m4f3b57d[m Merge pull request #2 from qMezero/codex/add-logic-for-point-codes-and-connections
+[33mb86915c[m Implement code-aware geometry rendering
+[33m85bb02a[m added new readable file
+[33m72f70ae[m Merge pull request #1 from qMezero/codex/check-code-for-errors
+[33m27495fe[m Improve PCO parsing robustness and PDF export fidelity
+[33mf26e95c[m AddedAPP
+[33m9fd692f[m Initial commit
