@@ -1,0 +1,4 @@
+<resources>
+    <attr name="colorPrimaryVariant" format="color|reference" />
+    <attr name="colorSecondaryVariant" format="color|reference" />
+</resources>
