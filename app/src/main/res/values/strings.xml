@@ -100,4 +100,12 @@
     <string name="save_pdf_failed">Не удалось сохранить PDF</string>
     <string name="save_pdf_directory_saved">Папка для экспорта сохранена</string>
     <string name="save_pdf_directory_not_selected">Папка не выбрана</string>
+    <string name="button_select_theme">Выбрать тему</string>
+    <string name="button_select_theme_current">Тема: %1$s</string>
+    <string name="theme_dialog_title">Выбор темы</string>
+    <string name="theme_dialog_apply">Применить</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_midnight_indigo">Midnight Indigo</string>
+    <string name="theme_teal_nightfall">Teal Nightfall</string>
+    <string name="theme_graphite_contrast">Graphite Contrast</string>
 </resources>
