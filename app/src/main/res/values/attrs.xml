@@ -1,0 +1,4 @@
+<resources>
+    <attr name="colorPrimaryVariant" format="color" />
+    <attr name="colorSecondaryVariant" format="color" />
+</resources>
