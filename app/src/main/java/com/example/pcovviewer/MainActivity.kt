@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savePdfButton: Button
     private lateinit var openPdfButton: Button
     private lateinit var layerButton: Button
+    private lateinit var themeButton: Button
 
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
@@ -71,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -79,11 +81,14 @@ class MainActivity : AppCompatActivity() {
         savePdfButton = findViewById(R.id.buttonSavePdf)
         openPdfButton = findViewById(R.id.buttonOpenPdf)
         layerButton = findViewById(R.id.buttonLayers)
+        themeButton = findViewById(R.id.buttonTheme)
 
         drawingView.setLabelVisibility(showPointNumbers, showPointCodes)
 
         layerButton.setOnClickListener { showLayerSelectionDialog() }
         updateLayerButtonState()
+        themeButton.setOnClickListener { showThemeSelectionDialog() }
+        updateThemeButtonState()
 
         // Загрузка .pco
         loadButton.setOnClickListener { openFilePicker() }
@@ -101,6 +106,29 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "PDF ещё не создан", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun updateThemeButtonState() {
+        val themeName = ThemeManager.getThemeDisplayName(this)
+        themeButton.text = getString(R.string.button_select_theme_current, themeName)
+    }
+
+    private fun showThemeSelectionDialog() {
+        val themes = ThemeManager.AppTheme.values()
+        var selectedTheme = ThemeManager.getSelectedTheme(this)
+        val themeOptions = ThemeManager.getThemeOptions(this)
+        val currentIndex = ThemeManager.getSelectedThemeIndex(this)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.theme_dialog_title)
+            .setSingleChoiceItems(themeOptions, currentIndex) { _, which ->
+                selectedTheme = themes[which]
+            }
+            .setPositiveButton(R.string.theme_dialog_apply) { _, _ ->
+                ThemeManager.selectTheme(this, selectedTheme)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun handleExportRequest(forceDirectorySelection: Boolean) {
