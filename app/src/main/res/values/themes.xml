@@ -8,6 +8,7 @@
         <item name="colorPrimaryContainer">#3700B3</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSecondary">#03DAC5</item>
+        <item name="colorSecondaryContainer">#018786</item>
         <item name="colorSecondaryVariant">#018786</item>
         <item name="colorPrimaryContainer">#3700B3</item>
         <item name="colorOnPrimary">#FFFFFF</item>
@@ -31,6 +32,7 @@
         <item name="colorPrimaryContainer">#1F1B2C</item>
         <item name="colorOnPrimary">#EDE7F6</item>
         <item name="colorSecondary">#BB86FC</item>
+        <item name="colorSecondaryContainer">#3700B3</item>
         <item name="colorSecondaryVariant">#3700B3</item>
         <item name="colorPrimaryContainer">#1F1B2C</item>
         <item name="colorOnPrimary">#EDE7F6</item>
@@ -54,6 +56,7 @@
         <item name="colorPrimaryContainer">#162629</item>
         <item name="colorOnPrimary">#E0F2F1</item>
         <item name="colorSecondary">#03DAC5</item>
+        <item name="colorSecondaryContainer">#005047</item>
         <item name="colorSecondaryVariant">#005047</item>
         <item name="colorPrimaryContainer">#162629</item>
         <item name="colorOnPrimary">#E0F2F1</item>
@@ -77,6 +80,7 @@
         <item name="colorPrimaryContainer">#3C4043</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSecondary">#03DAC5</item>
+        <item name="colorSecondaryContainer">#018786</item>
         <item name="colorSecondaryVariant">#018786</item>
         <item name="colorPrimaryContainer">#3C4043</item>
         <item name="colorOnPrimary">#FFFFFF</item>
