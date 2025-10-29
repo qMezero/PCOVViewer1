@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawingView: DrawingView
     private lateinit var loadButton: Button
     private lateinit var savePdfButton: Button
+    private lateinit var saveDwgButton: Button
     private lateinit var openPdfButton: Button
     private lateinit var layerButton: Button
     private lateinit var themeButton: ImageButton
@@ -26,7 +27,9 @@ class MainActivity : AppCompatActivity() {
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
     private val layerStates = mutableListOf<LayerState>()
-    private var exportAfterDirectorySelection = false
+    private enum class ExportType { PDF, DWG }
+
+    private var pendingExportType: ExportType? = null
     private var currentPcoFileName: String? = null
     private var showPointNumbers = true
     private var showPointCodes = true
@@ -52,6 +55,7 @@ class MainActivity : AppCompatActivity() {
 
     private val exportDirectoryLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            val requestedType = pendingExportType
             if (uri != null) {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 try {
@@ -61,16 +65,19 @@ class MainActivity : AppCompatActivity() {
                 }
                 saveExportDirectory(uri)
 
-                if (exportAfterDirectorySelection && visiblePoints.isNotEmpty()) {
-                    exportVisiblePoints(uri)
+                if (requestedType != null && visiblePoints.isNotEmpty()) {
+                    when (requestedType) {
+                        ExportType.PDF -> exportVisiblePointsToPdf(uri)
+                        ExportType.DWG -> exportVisiblePointsToDwg(uri)
+                    }
                 } else {
                     Toast.makeText(this, R.string.save_pdf_directory_saved, Toast.LENGTH_SHORT).show()
                 }
-            } else if (exportAfterDirectorySelection) {
+            } else if (requestedType != null) {
                 Toast.makeText(this, R.string.save_pdf_directory_not_selected, Toast.LENGTH_SHORT).show()
             }
 
-            exportAfterDirectorySelection = false
+            pendingExportType = null
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         drawingView = findViewById(R.id.drawingView)
         loadButton = findViewById(R.id.buttonLoadPco)
         savePdfButton = findViewById(R.id.buttonSavePdf)
+        saveDwgButton = findViewById(R.id.buttonSaveDwg)
         openPdfButton = findViewById(R.id.buttonOpenPdf)
         layerButton = findViewById(R.id.buttonLayers)
         themeButton = findViewById(R.id.buttonTheme)
@@ -96,9 +104,19 @@ class MainActivity : AppCompatActivity() {
         loadButton.setOnClickListener { openFilePicker() }
 
         // Сохранение PDF
-        savePdfButton.setOnClickListener { handleExportRequest(forceDirectorySelection = false) }
+        savePdfButton.setOnClickListener {
+            handleExportRequest(type = ExportType.PDF, forceDirectorySelection = false)
+        }
         savePdfButton.setOnLongClickListener {
-            handleExportRequest(forceDirectorySelection = true)
+            handleExportRequest(type = ExportType.PDF, forceDirectorySelection = true)
+            true
+        }
+
+        saveDwgButton.setOnClickListener {
+            handleExportRequest(type = ExportType.DWG, forceDirectorySelection = false)
+        }
+        saveDwgButton.setOnLongClickListener {
+            handleExportRequest(type = ExportType.DWG, forceDirectorySelection = true)
             true
         }
 
@@ -135,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun handleExportRequest(forceDirectorySelection: Boolean) {
+    private fun handleExportRequest(type: ExportType, forceDirectorySelection: Boolean) {
         if (visiblePoints.isEmpty()) {
             Toast.makeText(this, R.string.save_pdf_no_data, Toast.LENGTH_SHORT).show()
             return
@@ -143,15 +161,22 @@ class MainActivity : AppCompatActivity() {
 
         val savedDirectory = getSavedExportDirectory()
         if (forceDirectorySelection || savedDirectory == null) {
-            exportAfterDirectorySelection = true
-            Toast.makeText(this, R.string.save_pdf_choose_directory, Toast.LENGTH_SHORT).show()
+            pendingExportType = type
+            val messageRes = when (type) {
+                ExportType.PDF -> R.string.save_pdf_choose_directory
+                ExportType.DWG -> R.string.save_dwg_choose_directory
+            }
+            Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
             exportDirectoryLauncher.launch(savedDirectory)
         } else {
-            exportVisiblePoints(savedDirectory)
+            when (type) {
+                ExportType.PDF -> exportVisiblePointsToPdf(savedDirectory)
+                ExportType.DWG -> exportVisiblePointsToDwg(savedDirectory)
+            }
         }
     }
 
-    private fun exportVisiblePoints(directoryUri: Uri?) {
+    private fun exportVisiblePointsToPdf(directoryUri: Uri?) {
         val result = PdfExporter.exportToPdf(
             context = this,
             points = visiblePoints,
@@ -171,6 +196,29 @@ class MainActivity : AppCompatActivity() {
                 clearExportDirectory()
             }
             Toast.makeText(this, R.string.save_pdf_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun exportVisiblePointsToDwg(directoryUri: Uri?) {
+        val result = DwgExporter.exportToDwg(
+            context = this,
+            points = visiblePoints,
+            targetDirectoryUri = directoryUri,
+            baseFileName = currentPcoFileName,
+            showPointNumbers = showPointNumbers,
+            showPointCodes = showPointCodes
+        )
+        if (result != null) {
+            Toast.makeText(
+                this,
+                getString(R.string.save_dwg_success, result.description),
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            if (directoryUri != null) {
+                clearExportDirectory()
+            }
+            Toast.makeText(this, R.string.save_dwg_failed, Toast.LENGTH_LONG).show()
         }
     }
 
