@@ -30,6 +30,11 @@ object ThemeManager {
             "graphite_contrast",
             R.string.theme_graphite_contrast,
             R.style.Theme_PCOVViewer_GraphiteContrast
+        ),
+        APP_THEME(
+            "app_theme",
+            R.string.theme_app_theme,
+            R.style.Theme_PCOVViewer_AppTheme
         );
 
         companion object {

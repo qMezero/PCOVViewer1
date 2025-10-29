@@ -77,4 +77,23 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
     </style>
 
+    <!-- Тёмная №4 -->
+    <style name="Theme.PCOVViewer.AppTheme" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">#1A1A1A</item>
+        <item name="colorPrimaryContainer">#121212</item>
+        <item name="colorOnPrimary">#FF3B30</item>
+
+        <item name="colorSecondary">#D32F2F</item>
+        <item name="colorSecondaryContainer">#8A1C1C</item>
+
+        <item name="colorSurface">#2B2B2B</item>
+        <item name="colorOnSurface">#F5F5F5</item>
+        <item name="colorSurfaceVariant">#1F1F1F</item>
+        <item name="colorOnSurfaceVariant">#FFCDD2</item>
+
+        <item name="android:colorBackground">#2B2B2B</item>
+
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+    </style>
+
 </resources>
