@@ -16,54 +16,69 @@
         android:layout_weight="1"
         android:background="?attr/colorSurfaceVariant" />
 
-    <Button
-        android:id="@+id/buttonLoadPco"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_button"
-        android:text="Загрузить PCO файл"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="18sp" />
+        android:gravity="top"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/buttonLayers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_button"
-        android:text="@string/layers_button_default"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="18sp" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/buttonSavePdf"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_button"
-        android:text="Сохранить PDF"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="18sp" />
+            <Button
+                android:id="@+id/buttonLoadPco"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button"
+                android:text="Загрузить PCO файл"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/buttonOpenPdf"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_button"
-        android:text="Открыть PDF"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="18sp" />
+            <Button
+                android:id="@+id/buttonLayers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_button"
+                android:text="@string/layers_button_default"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="18sp" />
 
-    <Button
-        android:id="@+id/buttonTheme"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_button"
-        android:text="@string/button_select_theme"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="18sp" />
+            <Button
+                android:id="@+id/buttonSavePdf"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_button"
+                android:text="Сохранить PDF"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/buttonOpenPdf"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_button"
+                android:text="Открыть PDF"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/buttonTheme"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/theme_toggle_background"
+            android:contentDescription="@string/button_select_theme"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_theme_toggle" />
+    </LinearLayout>
 
 </LinearLayout>
