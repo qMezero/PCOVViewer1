@@ -2,4 +2,5 @@
     <!-- Bridge legacy Material components that still query colorPrimaryVariant or colorSecondaryVariant -->
     <attr name="colorPrimaryVariant" format="color|reference" />
     <attr name="colorSecondaryVariant" format="color|reference" />
+    <attr name="pointLabelColor" format="color|reference" />
 </resources>
