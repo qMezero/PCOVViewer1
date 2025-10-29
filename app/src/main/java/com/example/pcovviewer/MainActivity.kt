@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
     private val layerStates = mutableListOf<LayerState>()
-    private enum class ExportType { PDF, DWG }
+    private enum class ExportType { PDF, DWG, DXF }
 
     private var pendingExportType: ExportType? = null
     private var currentPcoFileName: String? = null
@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
                     when (requestedType) {
                         ExportType.PDF -> exportVisiblePointsToPdf(uri)
                         ExportType.DWG -> exportVisiblePointsToDwg(uri)
+                        ExportType.DXF -> exportVisiblePointsToDxf(uri)
                     }
                 } else {
                     Toast.makeText(this, R.string.save_pdf_directory_saved, Toast.LENGTH_SHORT).show()
@@ -127,7 +128,8 @@ class MainActivity : AppCompatActivity() {
     private fun showExportFormatDialog(forceDirectorySelection: Boolean) {
         val formats = arrayOf(
             getString(R.string.export_format_pdf),
-            getString(R.string.export_format_dwg)
+            getString(R.string.export_format_dwg),
+            getString(R.string.export_format_dxf)
         )
 
         AlertDialog.Builder(this)
@@ -136,6 +138,7 @@ class MainActivity : AppCompatActivity() {
                 when (which) {
                     0 -> handleExportRequest(ExportType.PDF, forceDirectorySelection)
                     1 -> handleExportRequest(ExportType.DWG, forceDirectorySelection)
+                    2 -> handleExportRequest(ExportType.DXF, forceDirectorySelection)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -172,6 +175,7 @@ class MainActivity : AppCompatActivity() {
             val messageRes = when (type) {
                 ExportType.PDF -> R.string.save_pdf_choose_directory
                 ExportType.DWG -> R.string.save_dwg_choose_directory
+                ExportType.DXF -> R.string.save_dxf_choose_directory
             }
             Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
             exportDirectoryLauncher.launch(savedDirectory)
@@ -179,6 +183,7 @@ class MainActivity : AppCompatActivity() {
             when (type) {
                 ExportType.PDF -> exportVisiblePointsToPdf(savedDirectory)
                 ExportType.DWG -> exportVisiblePointsToDwg(savedDirectory)
+                ExportType.DXF -> exportVisiblePointsToDxf(savedDirectory)
             }
         }
     }
@@ -226,6 +231,29 @@ class MainActivity : AppCompatActivity() {
                 clearExportDirectory()
             }
             Toast.makeText(this, R.string.save_dwg_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun exportVisiblePointsToDxf(directoryUri: Uri?) {
+        val result = DxfExporter.exportToDxf(
+            context = this,
+            points = visiblePoints,
+            targetDirectoryUri = directoryUri,
+            baseFileName = currentPcoFileName,
+            showPointNumbers = showPointNumbers,
+            showPointCodes = showPointCodes
+        )
+        if (result != null) {
+            Toast.makeText(
+                this,
+                getString(R.string.save_dxf_success, result.description),
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            if (directoryUri != null) {
+                clearExportDirectory()
+            }
+            Toast.makeText(this, R.string.save_dxf_failed, Toast.LENGTH_LONG).show()
         }
     }
 
