@@ -18,8 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drawingView: DrawingView
     private lateinit var loadButton: Button
-    private lateinit var savePdfButton: Button
-    private lateinit var saveDwgButton: Button
+    private lateinit var exportButton: Button
     private lateinit var openPdfButton: Button
     private lateinit var layerButton: Button
     private lateinit var themeButton: ImageButton
@@ -87,8 +86,7 @@ class MainActivity : AppCompatActivity() {
 
         drawingView = findViewById(R.id.drawingView)
         loadButton = findViewById(R.id.buttonLoadPco)
-        savePdfButton = findViewById(R.id.buttonSavePdf)
-        saveDwgButton = findViewById(R.id.buttonSaveDwg)
+        exportButton = findViewById(R.id.buttonExport)
         openPdfButton = findViewById(R.id.buttonOpenPdf)
         layerButton = findViewById(R.id.buttonLayers)
         themeButton = findViewById(R.id.buttonTheme)
@@ -103,20 +101,11 @@ class MainActivity : AppCompatActivity() {
         // Загрузка .pco
         loadButton.setOnClickListener { openFilePicker() }
 
-        // Сохранение PDF
-        savePdfButton.setOnClickListener {
-            handleExportRequest(type = ExportType.PDF, forceDirectorySelection = false)
+        exportButton.setOnClickListener {
+            showExportFormatDialog(forceDirectorySelection = false)
         }
-        savePdfButton.setOnLongClickListener {
-            handleExportRequest(type = ExportType.PDF, forceDirectorySelection = true)
-            true
-        }
-
-        saveDwgButton.setOnClickListener {
-            handleExportRequest(type = ExportType.DWG, forceDirectorySelection = false)
-        }
-        saveDwgButton.setOnLongClickListener {
-            handleExportRequest(type = ExportType.DWG, forceDirectorySelection = true)
+        exportButton.setOnLongClickListener {
+            showExportFormatDialog(forceDirectorySelection = true)
             true
         }
 
@@ -133,6 +122,24 @@ class MainActivity : AppCompatActivity() {
         val description = getString(R.string.button_select_theme_current, themeName)
         themeButton.contentDescription = description
         ViewCompat.setTooltipText(themeButton, description)
+    }
+
+    private fun showExportFormatDialog(forceDirectorySelection: Boolean) {
+        val formats = arrayOf(
+            getString(R.string.export_format_pdf),
+            getString(R.string.export_format_dwg)
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.export_dialog_title)
+            .setItems(formats) { _, which ->
+                when (which) {
+                    0 -> handleExportRequest(ExportType.PDF, forceDirectorySelection)
+                    1 -> handleExportRequest(ExportType.DWG, forceDirectorySelection)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showThemeSelectionDialog() {
