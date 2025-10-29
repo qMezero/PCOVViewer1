@@ -119,4 +119,5 @@
     <string name="theme_midnight_indigo">Midnight Indigo</string>
     <string name="theme_teal_nightfall">Teal Nightfall</string>
     <string name="theme_graphite_contrast">Graphite Contrast</string>
+    <string name="theme_app_theme">App theme</string>
 </resources>
