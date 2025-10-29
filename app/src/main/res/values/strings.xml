@@ -94,8 +94,10 @@
     <string name="layers_code_96">96 урез воды</string>
     <string name="layers_code_99">99 выс.отметка</string>
     <string name="layers_code_998">998 прочие объекты</string>
-    <string name="save_pdf_button">Сохранить PDF</string>
-    <string name="save_dwg_button">Сохранить DWG</string>
+    <string name="save_export_button">Экспорт PDF/DWG</string>
+    <string name="export_dialog_title">Выберите формат экспорта</string>
+    <string name="export_format_pdf">PDF</string>
+    <string name="export_format_dwg">DWG</string>
     <string name="save_pdf_no_data">Нет данных для сохранения</string>
     <string name="save_pdf_choose_directory">Выберите папку для сохранения PDF</string>
     <string name="save_dwg_choose_directory">Выберите папку для сохранения DWG</string>
