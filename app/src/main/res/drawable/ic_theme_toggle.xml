@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="@color/theme_toggle_moon"
+        android:pathData="M12,1a11,11 0 1,1 0,22a11,11 0 1,1 0,-22z" />
+
+    <path
+        android:fillColor="@color/theme_toggle_sun"
+        android:pathData="M12,1A11,11 0 0,0 12,23A11,11 0 0,0 12,1Z" />
+
+    <path
+        android:fillColor="@color/theme_toggle_moon_highlight"
+        android:pathData="M15.5,6.5a4.5,4.5 0 1,0 0,9a4.5,4.5 0 1,0 0,-9z" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M4.2,12H7"
+        android:strokeColor="@color/theme_toggle_sun"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M5.2,7L7.4,9.2"
+        android:strokeColor="@color/theme_toggle_sun"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M5.2,17L7.4,14.8"
+        android:strokeColor="@color/theme_toggle_sun"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M9,3.8V6.6"
+        android:strokeColor="@color/theme_toggle_sun"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.5" />
+</vector>

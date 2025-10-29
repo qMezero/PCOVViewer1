@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ExpandableListView
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savePdfButton: Button
     private lateinit var openPdfButton: Button
     private lateinit var layerButton: Button
-    private lateinit var themeButton: Button
+    private lateinit var themeButton: ImageButton
 
     private var loadedPoints: List<PcoParser.PcoPoint> = emptyList()
     private var visiblePoints: List<PcoParser.PcoPoint> = emptyList()
@@ -110,7 +112,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateThemeButtonState() {
         val themeName = ThemeManager.getThemeDisplayName(this)
-        themeButton.text = getString(R.string.button_select_theme_current, themeName)
+        val description = getString(R.string.button_select_theme_current, themeName)
+        themeButton.contentDescription = description
+        ViewCompat.setTooltipText(themeButton, description)
     }
 
     private fun showThemeSelectionDialog() {

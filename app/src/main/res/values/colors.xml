@@ -6,4 +6,7 @@
     <color name="teal_700">#018786</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="theme_toggle_sun">#FFB300</color>
+    <color name="theme_toggle_moon">#303F9F</color>
+    <color name="theme_toggle_moon_highlight">#5C6BC0</color>
 </resources>
