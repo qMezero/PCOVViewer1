@@ -55,7 +55,7 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private val textPaint = Paint().apply {
-        color = DrawingStyle.TEXT_COLOR
+        color = DrawingStyle.resolvePointLabelColor(context)
         isAntiAlias = true
     }
 

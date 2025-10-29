@@ -1,5 +1,6 @@
 package com.example.pcovviewer
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
@@ -45,6 +46,16 @@ object DrawingStyle {
 
     fun specialPointLetterVerticalOffsetFactor(letter: String): Float =
         specialPointLetterVerticalOffsetFactors[letter].orZero()
+
+    fun resolvePointLabelColor(context: Context): Int {
+        val attrs = intArrayOf(R.attr.pointLabelColor)
+        val typedArray = context.obtainStyledAttributes(attrs)
+        return try {
+            typedArray.getColor(0, TEXT_COLOR)
+        } finally {
+            typedArray.recycle()
+        }
+    }
 
     fun adjustSpecialPointTextSize(
         paint: Paint,
