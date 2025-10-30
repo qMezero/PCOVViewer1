@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drawingView: DrawingView
     private lateinit var loadButton: Button
+    private lateinit var saveDxfButton: Button
     private lateinit var savePdfButton: Button
     private lateinit var openPdfButton: Button
 
@@ -57,6 +58,30 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private val saveDxfLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/dxf")) { uri ->
+            if (uri == null) {
+                Toast.makeText(this, "Файл не создан", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+                // Игнорируем, если пермишены не поддерживаются
+            }
+
+            val success = DxfExporter.exportToDxf(this, loadedPoints, uri)
+            if (success) {
+                Toast.makeText(this, "DXF сохранён", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Не удалось сохранить DXF", Toast.LENGTH_LONG).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,10 +89,20 @@ class MainActivity : AppCompatActivity() {
         drawingView = findViewById(R.id.drawingView)
         loadButton = findViewById(R.id.buttonLoadPco)
         savePdfButton = findViewById(R.id.buttonSavePdf)
+        saveDxfButton = findViewById(R.id.buttonSaveDxf)
         openPdfButton = findViewById(R.id.buttonOpenPdf)
 
         // Загрузка .pco
         loadButton.setOnClickListener { openFilePicker() }
+
+        saveDxfButton.setOnClickListener {
+            if (loadedPoints.isEmpty()) {
+                Toast.makeText(this, "Нет данных для сохранения", Toast.LENGTH_SHORT).show()
+            } else {
+                val fileName = "drawing_${'$'}{System.currentTimeMillis()}.dxf"
+                saveDxfLauncher.launch(fileName)
+            }
+        }
 
         // Сохранение PDF
         savePdfButton.setOnClickListener {
