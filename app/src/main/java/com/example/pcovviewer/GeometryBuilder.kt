@@ -53,49 +53,18 @@ object GeometryBuilder {
             ScaledPoint(point, scaledX, scaledY)
         }
 
-        val connections = buildConnections(scaledPoints)
+        val scaledPointsByNumber = scaledPoints.associateBy { it.point.number }
+        val rawConnections = ConnectionBuilder.build(visiblePoints)
+        val connections = rawConnections.mapNotNull { (start, end) ->
+            val scaledStart = scaledPointsByNumber[start.number]
+            val scaledEnd = scaledPointsByNumber[end.number]
+            if (scaledStart != null && scaledEnd != null) {
+                scaledStart to scaledEnd
+            } else {
+                null
+            }
+        }
 
         return Geometry(points = scaledPoints, connections = connections)
-    }
-
-    private fun buildConnections(points: List<ScaledPoint>): List<Pair<ScaledPoint, ScaledPoint>> {
-        if (points.isEmpty()) return emptyList()
-
-        val pointsByNumber = points.associateBy { it.point.number }
-        val sortedPoints = points.sortedBy { it.point.number }
-        val result = mutableListOf<Pair<ScaledPoint, ScaledPoint>>()
-        val deduplicationSet = mutableSetOf<Long>()
-
-        fun addConnection(first: ScaledPoint, second: ScaledPoint) {
-            if (first === second) return
-            val key = orderedConnectionKey(first.point.number, second.point.number)
-            if (deduplicationSet.add(key)) {
-                result += first to second
-            }
-        }
-
-        sortedPoints.forEach { current ->
-            val info = current.point.codeInfo
-
-            info.connectionTargets.forEach { targetNumber ->
-                val previousNumber = current.point.number - 1
-                // Skip linking codes that only reference the immediately preceding point in the
-                // numerical sequence (e.g. "CODE..POINT_NUMBER" or "..POINT_NUMBER").
-                val shouldSkipPreviousConnection =
-                    targetNumber == previousNumber &&
-                        info.connectionTargets.size == 1
-
-                if (shouldSkipPreviousConnection) {
-                    return@forEach
-                }
-
-                val target = pointsByNumber[targetNumber]
-                if (target != null) {
-                    addConnection(current, target)
-                }
-            }
-        }
-
-        return result
     }
 }
