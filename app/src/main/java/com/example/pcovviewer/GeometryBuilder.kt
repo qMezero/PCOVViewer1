@@ -116,7 +116,7 @@ object GeometryBuilder {
             info.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    val style = if (info.baseCode == "30") {
+                    val style = if (info.baseCode == "30" || info.baseCode == "992") {
                         ConnectionStyle.DOTTED
                     } else {
                         ConnectionStyle.SOLID
