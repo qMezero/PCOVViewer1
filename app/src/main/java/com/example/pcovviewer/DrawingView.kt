@@ -3,6 +3,7 @@ package com.example.pcovviewer
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -25,6 +26,12 @@ class DrawingView @JvmOverloads constructor(
     private val linePaint = Paint().apply {
         color = Color.BLUE
         isAntiAlias = true
+    }
+
+    private val dashedLinePaint = Paint().apply {
+        color = Color.BLUE
+        isAntiAlias = true
+        pathEffect = DashPathEffect(floatArrayOf(12f, 12f), 0f)
     }
 
     private val textPaint = Paint().apply {
@@ -86,17 +93,23 @@ class DrawingView @JvmOverloads constructor(
 
         linePaint.strokeWidth = adjustedStrokeWidth
         textPaint.textSize = adjustedTextSize
+        dashedLinePaint.strokeWidth = adjustedStrokeWidth
+        val dashLength = 12f / scaleFactor
+        dashedLinePaint.pathEffect = DashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
 
         canvas.save()
         canvas.translate(panX, panY)
         canvas.scale(scaleFactor, scaleFactor)
 
-        geometry.connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, linePaint)
+        geometry.connections.forEach { connection ->
+            val paint = if (connection.style == ConnectionStyle.DASHED) dashedLinePaint else linePaint
+            canvas.drawLine(connection.start.x, connection.start.y, connection.end.x, connection.end.y, paint)
         }
 
         geometry.points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, adjustedPointRadius, pointPaint)
+            val radiusScale = CodeRules.pointRadiusScale(scaledPoint.point)
+            val radius = adjustedPointRadius * radiusScale
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, radius, pointPaint)
 
             val label = "${scaledPoint.point.number}\n${scaledPoint.point.displayCode}"
             drawMultilineText(

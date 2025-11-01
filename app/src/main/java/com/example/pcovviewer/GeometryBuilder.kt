@@ -17,7 +17,13 @@ data class ScaledPoint(
  */
 data class Geometry(
     val points: List<ScaledPoint>,
-    val connections: List<Pair<ScaledPoint, ScaledPoint>>
+    val connections: List<ScaledConnection>
+)
+
+data class ScaledConnection(
+    val start: ScaledPoint,
+    val end: ScaledPoint,
+    val style: ConnectionStyle
 )
 
 object GeometryBuilder {
@@ -55,11 +61,15 @@ object GeometryBuilder {
 
         val scaledPointsByNumber = scaledPoints.associateBy { it.point.number }
         val rawConnections = ConnectionBuilder.build(visiblePoints)
-        val connections = rawConnections.mapNotNull { (start, end) ->
-            val scaledStart = scaledPointsByNumber[start.number]
-            val scaledEnd = scaledPointsByNumber[end.number]
+        val connections = rawConnections.mapNotNull { connection ->
+            val scaledStart = scaledPointsByNumber[connection.start.number]
+            val scaledEnd = scaledPointsByNumber[connection.end.number]
             if (scaledStart != null && scaledEnd != null) {
-                scaledStart to scaledEnd
+                ScaledConnection(
+                    start = scaledStart,
+                    end = scaledEnd,
+                    style = connection.style
+                )
             } else {
                 null
             }

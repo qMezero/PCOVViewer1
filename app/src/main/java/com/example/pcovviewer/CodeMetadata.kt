@@ -3,6 +3,11 @@ package com.example.pcovviewer
 import kotlin.math.max
 import kotlin.math.min
 
+enum class ConnectionStyle {
+    SOLID,
+    DASHED
+}
+
 /**
  * Parsed representation of a raw point code coming from the *.pco file.
  */
@@ -56,9 +61,59 @@ object CodeRules {
         "731"
     )
 
+    private val smallIconBaseCodes: Set<String> = setOf(
+        "40",
+        "42"
+    )
+
+    private val manualDashedBaseCodes: Set<String> = setOf(
+        "30",
+        "230",
+        "301",
+        "306"
+    )
+
+    private val manualSolidBaseCodes: Set<String> = emptySet()
+
     fun isHidden(point: PcoParser.PcoPoint): Boolean = isHidden(point.codeInfo.baseCode)
 
     fun isHidden(baseCode: String): Boolean = baseCode.isNotEmpty() && hiddenBaseCodes.contains(baseCode)
+
+    fun pointRadiusScale(point: PcoParser.PcoPoint): Float = pointRadiusScale(point.codeInfo.baseCode)
+
+    fun pointRadiusScale(baseCode: String): Float {
+        if (baseCode.isEmpty()) {
+            return 1f
+        }
+        return if (smallIconBaseCodes.contains(baseCode)) 0.5f else 1f
+    }
+
+    fun connectionStyleForManualTargets(
+        source: PcoParser.PcoPoint,
+        target: PcoParser.PcoPoint? = null
+    ): ConnectionStyle {
+        val sourceBase = source.codeInfo.baseCode
+        if (sourceBase.isNotEmpty()) {
+            if (manualDashedBaseCodes.contains(sourceBase)) {
+                return ConnectionStyle.DASHED
+            }
+            if (manualSolidBaseCodes.contains(sourceBase)) {
+                return ConnectionStyle.SOLID
+            }
+        }
+        if (target != null) {
+            val targetBase = target.codeInfo.baseCode
+            if (targetBase.isNotEmpty()) {
+                if (manualDashedBaseCodes.contains(targetBase)) {
+                    return ConnectionStyle.DASHED
+                }
+                if (manualSolidBaseCodes.contains(targetBase)) {
+                    return ConnectionStyle.SOLID
+                }
+            }
+        }
+        return ConnectionStyle.DASHED
+    }
 }
 
 /**
