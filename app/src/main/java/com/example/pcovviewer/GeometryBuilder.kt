@@ -193,7 +193,11 @@ private fun isCircleMarkerFenceConnection(first: PcoParser.PcoPoint, second: Pco
 
 private fun isDottedPreviousConnection(point: PcoParser.PcoPoint): Boolean {
     val trimmedCode = point.code.trim()
-    return point.codeInfo.baseCode == "30" && trimmedCode.equals("30..", ignoreCase = false)
+    return when (point.codeInfo.baseCode) {
+        "30" -> trimmedCode.equals("30..", ignoreCase = false)
+        "992" -> trimmedCode.equals("992..", ignoreCase = false)
+        else -> false
+    }
 }
 
 private val nonNameAttributeKeys = setOf("4", "5", "37", "38", "39")
