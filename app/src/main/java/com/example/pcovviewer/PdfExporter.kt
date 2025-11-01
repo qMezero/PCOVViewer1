@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
@@ -403,6 +405,9 @@ object PdfExporter {
             canvas.drawPath(strokePath, specialPointStrokePaint)
 
             val specialPointTextBounds = Rect()
+            val specialPointTextPath = Path()
+            val specialPointTextPathBounds = RectF()
+            val specialPointTextMatrix = Matrix()
             specialPoints.forEach { scaledPoint ->
                 val letter = DrawingStyle.specialPointLetter(scaledPoint.point.codeInfo.baseCode)
                 if (letter != null) {
@@ -413,16 +418,19 @@ object PdfExporter {
                         radius = radius,
                         strokeWidth = specialPointStrokePaint.strokeWidth
                     )
-                    val textY = if (letter.isNotEmpty()) {
-                        specialPointTextPaint.getTextBounds(letter, 0, letter.length, specialPointTextBounds)
-                        scaledPoint.y - (specialPointTextBounds.top + specialPointTextBounds.bottom) / 2f
-                    } else {
-                        val metrics = specialPointTextPaint.fontMetrics
-                        scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
-                    }
                     val verticalOffsetFactor = DrawingStyle.specialPointLetterVerticalOffsetFactor(letter)
-                    val adjustedTextY = textY - radius * verticalOffsetFactor
-                    canvas.drawText(letter, scaledPoint.x, adjustedTextY, specialPointTextPaint)
+                    drawCenteredSpecialPointLetter(
+                        canvas = canvas,
+                        paint = specialPointTextPaint,
+                        letter = letter,
+                        centerX = scaledPoint.x,
+                        centerY = scaledPoint.y,
+                        verticalOffset = radius * verticalOffsetFactor,
+                        boundsRect = specialPointTextBounds,
+                        textPath = specialPointTextPath,
+                        pathBounds = specialPointTextPathBounds,
+                        matrix = specialPointTextMatrix
+                    )
                 }
             }
         }
@@ -470,5 +478,44 @@ object PdfExporter {
     private fun adjustedSpecialPointRadius(code: String, baseRadius: Float): Float {
         val scale = SPECIAL_POINT_SCALE_OVERRIDES[code] ?: 1f
         return baseRadius * scale
+    }
+
+    private fun drawCenteredSpecialPointLetter(
+        canvas: Canvas,
+        paint: Paint,
+        letter: String,
+        centerX: Float,
+        centerY: Float,
+        verticalOffset: Float,
+        boundsRect: Rect,
+        textPath: Path,
+        pathBounds: RectF,
+        matrix: Matrix
+    ) {
+        if (letter.isEmpty()) {
+            val metrics = paint.fontMetrics
+            val baselineY = centerY - verticalOffset - (metrics.ascent + metrics.descent) / 2f
+            canvas.drawText(letter, centerX, baselineY, paint)
+            return
+        }
+
+        textPath.reset()
+        paint.getTextPath(letter, 0, letter.length, 0f, 0f, textPath)
+        if (textPath.isEmpty) {
+            paint.getTextBounds(letter, 0, letter.length, boundsRect)
+            val baselineY = centerY - verticalOffset - (boundsRect.top + boundsRect.bottom) / 2f
+            canvas.drawText(letter, centerX, baselineY, paint)
+            return
+        }
+
+        textPath.computeBounds(pathBounds, true)
+        val offsetX = centerX - pathBounds.centerX()
+        val offsetY = centerY - verticalOffset - pathBounds.centerY()
+
+        matrix.reset()
+        matrix.setTranslate(offsetX, offsetY)
+        textPath.transform(matrix)
+
+        canvas.drawPath(textPath, paint)
     }
 }
