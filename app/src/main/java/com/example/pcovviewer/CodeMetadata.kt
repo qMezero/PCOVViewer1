@@ -114,6 +114,40 @@ object CodeRules {
         }
         return ConnectionStyle.DASHED
     }
+
+    fun finalizedConnectionStyle(
+        initialStyle: ConnectionStyle,
+        first: PcoParser.PcoPoint,
+        second: PcoParser.PcoPoint
+    ): ConnectionStyle {
+        if (shouldForceDashed(first) || shouldForceDashed(second)) {
+            return ConnectionStyle.DASHED
+        }
+        return initialStyle
+    }
+
+    private fun shouldForceDashed(point: PcoParser.PcoPoint): Boolean {
+        if (point.codeInfo.baseCode != "992") {
+            return false
+        }
+
+        val rawCode = point.code.trim()
+        if (rawCode.isEmpty()) {
+            return false
+        }
+
+        val delimiterIndex = rawCode.indexOf("..")
+        if (delimiterIndex == -1) {
+            return false
+        }
+
+        val suffix = rawCode.substring(delimiterIndex + 2).trim()
+        if (suffix.isEmpty()) {
+            return false
+        }
+
+        return suffix.any { it.isLetter() }
+    }
 }
 
 /**
