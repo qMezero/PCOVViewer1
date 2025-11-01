@@ -141,9 +141,14 @@ object PdfExporter {
             val dashGap = (
                 DrawingStyle.BASE_DASH_GAP * PDF_DASH_GAP_MULTIPLIER * clampedScale
             ).coerceAtLeast(1f)
-            val circleMarkerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = DrawingStyle.LINE_COLOR
+            val circleMarkerFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.CIRCLE_MARKER_FILL_COLOR
                 style = Paint.Style.FILL
+            }
+            val circleMarkerStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.LINE_COLOR
+                style = Paint.Style.STROKE
+                this.strokeWidth = strokeWidth
             }
             val circleMarkerRadius = DrawingStyle.BASE_CIRCLE_MARKER_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val circleMarkerSpacing = DrawingStyle.BASE_CIRCLE_MARKER_SPACING * clampedScale
@@ -154,7 +159,8 @@ object PdfExporter {
                 paint = linePaint,
                 dashInterval = dashInterval,
                 dashGap = dashGap,
-                circleMarkerPaint = circleMarkerPaint,
+                circleMarkerFillPaint = circleMarkerFillPaint,
+                circleMarkerStrokePaint = circleMarkerStrokePaint,
                 circleMarkerRadius = circleMarkerRadius,
                 circleMarkerSpacing = circleMarkerSpacing
             )
@@ -270,7 +276,8 @@ object PdfExporter {
         paint: Paint,
         dashInterval: Float,
         dashGap: Float,
-        circleMarkerPaint: Paint,
+        circleMarkerFillPaint: Paint?,
+        circleMarkerStrokePaint: Paint?,
         circleMarkerRadius: Float,
         circleMarkerSpacing: Float
     ) {
@@ -321,7 +328,10 @@ object PdfExporter {
             paint.pathEffect = null
         }
 
-        if (circleConnections.isNotEmpty() && circleMarkerRadius > 0f && circleMarkerSpacing > 0f) {
+        if (
+            circleConnections.isNotEmpty() && circleMarkerRadius > 0f && circleMarkerSpacing > 0f &&
+            (circleMarkerFillPaint != null || circleMarkerStrokePaint != null)
+        ) {
             circleConnections.forEach { connection ->
                 drawCircleMarkers(
                     canvas = canvas,
@@ -331,7 +341,8 @@ object PdfExporter {
                     endY = connection.end.y,
                     spacing = circleMarkerSpacing,
                     radius = circleMarkerRadius,
-                    paint = circleMarkerPaint
+                    fillPaint = circleMarkerFillPaint,
+                    strokePaint = circleMarkerStrokePaint
                 )
             }
         }
@@ -345,7 +356,8 @@ object PdfExporter {
         endY: Float,
         spacing: Float,
         radius: Float,
-        paint: Paint
+        fillPaint: Paint?,
+        strokePaint: Paint?
     ) {
         if (spacing <= 0f || radius <= 0f) {
             return
@@ -363,7 +375,8 @@ object PdfExporter {
             val fraction = distance / length
             val x = startX + dx * fraction
             val y = startY + dy * fraction
-            canvas.drawCircle(x, y, radius, paint)
+            fillPaint?.let { canvas.drawCircle(x, y, radius, it) }
+            strokePaint?.let { canvas.drawCircle(x, y, radius, it) }
             distance += spacing
         }
     }

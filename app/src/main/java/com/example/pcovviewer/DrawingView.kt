@@ -58,10 +58,16 @@ class DrawingView @JvmOverloads constructor(
         style = Paint.Style.STROKE
     }
 
-    private val circleMarkerPaint = Paint().apply {
-        color = DrawingStyle.LINE_COLOR
+    private val circleMarkerFillPaint = Paint().apply {
+        color = DrawingStyle.CIRCLE_MARKER_FILL_COLOR
         isAntiAlias = true
         style = Paint.Style.FILL
+    }
+
+    private val circleMarkerStrokePaint = Paint().apply {
+        color = DrawingStyle.LINE_COLOR
+        isAntiAlias = true
+        style = Paint.Style.STROKE
     }
 
     private val textPaint = Paint().apply {
@@ -152,6 +158,7 @@ class DrawingView @JvmOverloads constructor(
 
         textPaint.textSize = adjustedTextSize
         specialPointStrokePaint.strokeWidth = adjustedSpecialStrokeWidth
+        circleMarkerStrokePaint.strokeWidth = adjustedStrokeWidth
         specialPointTextPaint.textSize = adjustedSpecialTextSize
 
         canvas.save()
@@ -180,7 +187,8 @@ class DrawingView @JvmOverloads constructor(
                         endY = end.y,
                         spacing = circleMarkerSpacing,
                         radius = circleMarkerRadius,
-                        paint = circleMarkerPaint
+                        fillPaint = circleMarkerFillPaint,
+                        strokePaint = circleMarkerStrokePaint
                     )
                 }
             }
@@ -269,7 +277,8 @@ class DrawingView @JvmOverloads constructor(
         endY: Float,
         spacing: Float,
         radius: Float,
-        paint: Paint
+        fillPaint: Paint?,
+        strokePaint: Paint?
     ) {
         if (spacing <= 0f || radius <= 0f) {
             return
@@ -287,7 +296,8 @@ class DrawingView @JvmOverloads constructor(
             val fraction = distance / length
             val x = startX + dx * fraction
             val y = startY + dy * fraction
-            canvas.drawCircle(x, y, radius, paint)
+            fillPaint?.let { canvas.drawCircle(x, y, radius, it) }
+            strokePaint?.let { canvas.drawCircle(x, y, radius, it) }
             distance += spacing
         }
     }
