@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -42,6 +43,8 @@ class DrawingView @JvmOverloads constructor(
         typeface = DrawingStyle.SPECIAL_POINT_TYPEFACE
         isFakeBoldText = false
     }
+
+    private val specialPointTextBounds = Rect()
 
     private val solidLinePaint = Paint().apply {
         color = DrawingStyle.LINE_COLOR
@@ -313,8 +316,13 @@ class DrawingView @JvmOverloads constructor(
             radius = radius,
             strokeWidth = specialPointStrokePaint.strokeWidth
         )
-        val metrics = specialPointTextPaint.fontMetrics
-        val textY = y - (metrics.ascent + metrics.descent) / 2f
+        val textY = if (letter.isNotEmpty()) {
+            specialPointTextPaint.getTextBounds(letter, 0, letter.length, specialPointTextBounds)
+            y - (specialPointTextBounds.top + specialPointTextBounds.bottom) / 2f
+        } else {
+            val metrics = specialPointTextPaint.fontMetrics
+            y - (metrics.ascent + metrics.descent) / 2f
+        }
         val verticalOffsetFactor = DrawingStyle.specialPointLetterVerticalOffsetFactor(letter)
         val adjustedTextY = textY - radius * verticalOffsetFactor
         canvas.drawText(letter, x, adjustedTextY, specialPointTextPaint)
