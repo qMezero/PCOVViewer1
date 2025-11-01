@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
@@ -401,6 +402,7 @@ object PdfExporter {
             canvas.drawPath(fillPath, specialPointFillPaint)
             canvas.drawPath(strokePath, specialPointStrokePaint)
 
+            val specialPointTextBounds = Rect()
             specialPoints.forEach { scaledPoint ->
                 val letter = DrawingStyle.specialPointLetter(scaledPoint.point.codeInfo.baseCode)
                 if (letter != null) {
@@ -411,8 +413,13 @@ object PdfExporter {
                         radius = radius,
                         strokeWidth = specialPointStrokePaint.strokeWidth
                     )
-                    val metrics = specialPointTextPaint.fontMetrics
-                    val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
+                    val textY = if (letter.isNotEmpty()) {
+                        specialPointTextPaint.getTextBounds(letter, 0, letter.length, specialPointTextBounds)
+                        scaledPoint.y - (specialPointTextBounds.top + specialPointTextBounds.bottom) / 2f
+                    } else {
+                        val metrics = specialPointTextPaint.fontMetrics
+                        scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
+                    }
                     val verticalOffsetFactor = DrawingStyle.specialPointLetterVerticalOffsetFactor(letter)
                     val adjustedTextY = textY - radius * verticalOffsetFactor
                     canvas.drawText(letter, scaledPoint.x, adjustedTextY, specialPointTextPaint)
