@@ -88,6 +88,7 @@ class DrawingView @JvmOverloads constructor(
     private val specialPointTextScale = DrawingStyle.SPECIAL_POINT_TEXT_SCALE
     private val baseCircleMarkerRadius = DrawingStyle.BASE_CIRCLE_MARKER_RADIUS
     private val baseCircleMarkerSpacing = DrawingStyle.BASE_CIRCLE_MARKER_SPACING
+    private val baseCircleMarkerStrokeWidth = DrawingStyle.BASE_CIRCLE_MARKER_STROKE_WIDTH
 
     private var showPointNumbers = true
     private var showPointCodes = true
@@ -158,7 +159,7 @@ class DrawingView @JvmOverloads constructor(
 
         textPaint.textSize = adjustedTextSize
         specialPointStrokePaint.strokeWidth = adjustedSpecialStrokeWidth
-        circleMarkerStrokePaint.strokeWidth = adjustedStrokeWidth
+        circleMarkerStrokePaint.strokeWidth = baseCircleMarkerStrokeWidth / scaleFactor
         specialPointTextPaint.textSize = adjustedSpecialTextSize
 
         canvas.save()
