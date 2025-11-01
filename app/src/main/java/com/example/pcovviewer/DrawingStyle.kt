@@ -21,9 +21,10 @@ object DrawingStyle {
     const val BASE_DASH_INTERVAL: Float = 2.25f
     const val BASE_DASH_GAP: Float = 3f
 
-    const val BASE_CIRCLE_MARKER_RADIUS: Float = 4f
+    const val BASE_CIRCLE_MARKER_RADIUS: Float = 6f
     const val BASE_CIRCLE_MARKER_SPACING: Float = 28f
     const val CIRCLE_MARKER_FILL_COLOR: Int = Color.WHITE
+    const val BASE_CIRCLE_MARKER_STROKE_WIDTH: Float = 3f
 
     const val BASE_SPECIAL_POINT_RADIUS: Float = 12f
     const val BASE_SPECIAL_POINT_STROKE_WIDTH: Float = 1.5f / 4f
