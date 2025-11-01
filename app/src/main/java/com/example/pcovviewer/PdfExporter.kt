@@ -56,7 +56,7 @@ object PdfExporter {
             }
 
             val dashedLinePaint = Paint(linePaint).apply {
-                pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
+                pathEffect = DashPathEffect(floatArrayOf(4f, 4f), 0f)
             }
 
             drawConnections(canvas, geometry.connections, linePaint, dashedLinePaint)
