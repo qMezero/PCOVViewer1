@@ -25,6 +25,7 @@ object PdfExporter {
 
     private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
     private const val PDF_TEXT_SIZE_MULTIPLIER = 0.7f
+    private const val PDF_LABEL_SCALE = 0.5f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 0f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
     private const val PDF_DASH_INTERVAL_MULTIPLIER = 0.4f
@@ -84,17 +85,17 @@ object PdfExporter {
             val previewDensityDpi = previewMetrics.densityDpi.takeIf { it > 0 } ?: DisplayMetrics.DENSITY_DEFAULT
             val pdfUnitPerPixel = 72f / previewDensityDpi
             val textScale = pdfUnitPerPixel * PDF_TEXT_SIZE_MULTIPLIER
-            val digitExtraSpacing = PDF_DIGIT_EXTRA_SPACING_PX * textScale
+            val digitExtraSpacing = PDF_DIGIT_EXTRA_SPACING_PX * textScale * PDF_LABEL_SCALE
 
             val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val specialStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
-            val textSize = DrawingStyle.BASE_TEXT_SIZE * textScale
+            val textSize = DrawingStyle.BASE_TEXT_SIZE * textScale * PDF_LABEL_SCALE
             val specialPointTextSize = baseSpecialPointRadius * DrawingStyle.SPECIAL_POINT_TEXT_SCALE
-            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * textScale
-            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * textScale
-            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * textScale
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * textScale * PDF_LABEL_SCALE
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * textScale * PDF_LABEL_SCALE
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * textScale * PDF_LABEL_SCALE
 
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
@@ -479,10 +480,37 @@ object PdfExporter {
             val isNumeric = line.all { it.isDigit() }
             paint.letterSpacing = if (isNumeric) digitLetterSpacing else originalLetterSpacing
 
-            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
+            val preparedLine = prepareLabelLine(line)
+            canvas.drawText(
+                preparedLine,
+                0,
+                preparedLine.length,
+                x,
+                y + index * (paint.textSize + lineSpacing),
+                paint
+            )
         }
 
         paint.letterSpacing = originalLetterSpacing
+    }
+
+    private fun prepareLabelLine(line: String): CharSequence {
+        if (!line.contains("..")) {
+            return line
+        }
+
+        val spannable = android.text.SpannableString(line)
+        var startIndex = line.indexOf("..")
+        while (startIndex >= 0) {
+            spannable.setSpan(
+                android.text.style.ScaleXSpan(DrawingStyle.CODE_DOUBLE_DOT_SCALE),
+                startIndex,
+                startIndex + 2,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            startIndex = line.indexOf("..", startIndex + 1)
+        }
+        return spannable
     }
 
     private fun adjustedSpecialPointRadius(code: String, baseRadius: Float): Float {
