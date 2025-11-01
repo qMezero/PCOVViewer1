@@ -26,6 +26,11 @@ object PdfExporter {
     private const val PDF_DASH_INTERVAL_MULTIPLIER = 0.4f
     private const val PDF_DASH_GAP_MULTIPLIER = 0.4f
 
+    private val SPECIAL_POINT_SCALE_OVERRIDES: Map<String, Float> = mapOf(
+        "40" to (1f / 3f),
+        "42" to (1f / 3f)
+    )
+
     data class ExportResult(val uri: Uri, val description: String)
 
     fun exportToPdf(
@@ -73,11 +78,11 @@ object PdfExporter {
             val clampedScale = relativeScale.coerceAtMost(1f)
 
             val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
-            val specialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
+            val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val specialStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
-            val specialPointTextSize = specialPointRadius * DrawingStyle.SPECIAL_POINT_TEXT_SCALE
+            val specialPointTextSize = baseSpecialPointRadius * DrawingStyle.SPECIAL_POINT_TEXT_SCALE
             val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
             val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
@@ -152,7 +157,7 @@ object PdfExporter {
                 specialPointFillPaint = specialPointFillPaint,
                 specialPointStrokePaint = specialPointStrokePaint,
                 specialPointTextPaint = specialPointTextPaint,
-                specialPointRadius = specialPointRadius,
+                baseSpecialPointRadius = baseSpecialPointRadius,
                 labelOffsetX = labelOffsetX,
                 labelOffsetY = labelOffsetY,
                 lineSpacing = lineSpacing,
@@ -361,7 +366,7 @@ object PdfExporter {
         specialPointFillPaint: Paint,
         specialPointStrokePaint: Paint,
         specialPointTextPaint: Paint,
-        specialPointRadius: Float,
+        baseSpecialPointRadius: Float,
         labelOffsetX: Float,
         labelOffsetY: Float,
         lineSpacing: Float,
@@ -389,8 +394,9 @@ object PdfExporter {
             val fillPath = Path()
             val strokePath = Path()
             specialPoints.forEach { scaledPoint ->
-                fillPath.addCircle(scaledPoint.x, scaledPoint.y, specialPointRadius, Path.Direction.CW)
-                strokePath.addCircle(scaledPoint.x, scaledPoint.y, specialPointRadius, Path.Direction.CW)
+                val radius = adjustedSpecialPointRadius(scaledPoint.point.codeInfo.baseCode, baseSpecialPointRadius)
+                fillPath.addCircle(scaledPoint.x, scaledPoint.y, radius, Path.Direction.CW)
+                strokePath.addCircle(scaledPoint.x, scaledPoint.y, radius, Path.Direction.CW)
             }
             canvas.drawPath(fillPath, specialPointFillPaint)
             canvas.drawPath(strokePath, specialPointStrokePaint)
@@ -398,14 +404,17 @@ object PdfExporter {
             specialPoints.forEach { scaledPoint ->
                 val letter = DrawingStyle.specialPointLetter(scaledPoint.point.codeInfo.baseCode)
                 if (letter != null) {
+                    val radius = adjustedSpecialPointRadius(scaledPoint.point.codeInfo.baseCode, baseSpecialPointRadius)
                     DrawingStyle.adjustSpecialPointTextSize(
                         paint = specialPointTextPaint,
                         letter = letter,
-                        radius = specialPointRadius
+                        radius = radius
                     )
                     val metrics = specialPointTextPaint.fontMetrics
                     val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
-                    canvas.drawText(letter, scaledPoint.x, textY, specialPointTextPaint)
+                    val verticalOffsetFactor = DrawingStyle.specialPointLetterVerticalOffsetFactor(letter)
+                    val adjustedTextY = textY - radius * verticalOffsetFactor
+                    canvas.drawText(letter, scaledPoint.x, adjustedTextY, specialPointTextPaint)
                 }
             }
         }
@@ -448,5 +457,10 @@ object PdfExporter {
         }
 
         paint.letterSpacing = originalLetterSpacing
+    }
+
+    private fun adjustedSpecialPointRadius(code: String, baseRadius: Float): Float {
+        val scale = SPECIAL_POINT_SCALE_OVERRIDES[code] ?: 1f
+        return baseRadius * scale
     }
 }
