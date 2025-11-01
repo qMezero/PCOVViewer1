@@ -10,6 +10,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.net.Uri
+import android.util.DisplayMetrics
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import com.example.pcovviewer.PcoParser.PcoPoint
@@ -23,7 +24,7 @@ object PdfExporter {
     private var lastPdfUri: Uri? = null
 
     private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
-    private const val PDF_TEXT_SIZE_MULTIPLIER = (0.4f / 9f) * 2f
+    private const val PDF_TEXT_SIZE_MULTIPLIER = 1.4f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 0f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
     private const val PDF_DASH_INTERVAL_MULTIPLIER = 0.4f
@@ -80,15 +81,20 @@ object PdfExporter {
             val relativeScale = if (previewScale > 0f) geometry.scale / previewScale else 1f
             val clampedScale = relativeScale.coerceAtMost(1f)
 
+            val previewDensityDpi = previewMetrics.densityDpi.takeIf { it > 0 } ?: DisplayMetrics.DENSITY_DEFAULT
+            val pdfUnitPerPixel = 72f / previewDensityDpi
+            val textScale = pdfUnitPerPixel * PDF_TEXT_SIZE_MULTIPLIER
+            val digitExtraSpacing = PDF_DIGIT_EXTRA_SPACING_PX * textScale
+
             val pointRadius = DrawingStyle.BASE_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
             val strokeWidth = DrawingStyle.BASE_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
             val specialStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH * clampedScale * PDF_STROKE_WIDTH_MULTIPLIER
-            val textSize = DrawingStyle.BASE_TEXT_SIZE * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val textSize = DrawingStyle.BASE_TEXT_SIZE * textScale
             val specialPointTextSize = baseSpecialPointRadius * DrawingStyle.SPECIAL_POINT_TEXT_SCALE
-            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
-            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
-            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * clampedScale * PDF_TEXT_SIZE_MULTIPLIER
+            val labelOffsetX = DrawingStyle.BASE_LABEL_OFFSET_X * textScale
+            val labelOffsetY = DrawingStyle.BASE_LABEL_OFFSET_Y * textScale
+            val lineSpacing = DrawingStyle.BASE_LINE_SPACING * textScale
 
             val page = pdfDocument.startPage(pageInfo)
             val canvas: Canvas = page.canvas
@@ -164,6 +170,7 @@ object PdfExporter {
                 labelOffsetX = labelOffsetX,
                 labelOffsetY = labelOffsetY,
                 lineSpacing = lineSpacing,
+                digitExtraSpacing = digitExtraSpacing,
                 showNumbers = showPointNumbers,
                 showCodes = showPointCodes
             )
@@ -373,6 +380,7 @@ object PdfExporter {
         labelOffsetX: Float,
         labelOffsetY: Float,
         lineSpacing: Float,
+        digitExtraSpacing: Float,
         showNumbers: Boolean,
         showCodes: Boolean
     ) {
@@ -448,7 +456,8 @@ object PdfExporter {
                     y = scaledPoint.y - labelOffsetY,
                     paint = textPaint,
                     lineSpacing = lineSpacing,
-                    canvas = canvas
+                    canvas = canvas,
+                    digitExtraSpacing = digitExtraSpacing
                 )
             }
         }
@@ -460,10 +469,11 @@ object PdfExporter {
         y: Float,
         paint: Paint,
         lineSpacing: Float,
-        canvas: Canvas
+        canvas: Canvas,
+        digitExtraSpacing: Float
     ) {
         val originalLetterSpacing = paint.letterSpacing
-        val digitLetterSpacing = originalLetterSpacing + (PDF_DIGIT_EXTRA_SPACING_PX / paint.textSize)
+        val digitLetterSpacing = originalLetterSpacing + (digitExtraSpacing / paint.textSize)
 
         lines.forEachIndexed { index, line ->
             val isNumeric = line.all { it.isDigit() }
