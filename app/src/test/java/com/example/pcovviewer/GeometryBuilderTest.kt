@@ -14,9 +14,7 @@ class GeometryBuilderTest {
             PcoPoint(number = 2, code = "51..N", x = 10f, y = 0f, z = null)
         )
 
-        val geometry = GeometryBuilder.build(points, width = 100f, height = 100f)
-
-        assertNotNull(geometry)
+        val geometry = assertNotNull(GeometryBuilder.build(points, width = 100f, height = 100f))
         val connection = geometry.connections.single()
         assertEquals(ConnectionStyle.CIRCLE_MARKERS, connection.style)
     }
@@ -28,9 +26,7 @@ class GeometryBuilderTest {
             PcoPoint(number = 11, code = "51..", x = 5f, y = 5f, z = null)
         )
 
-        val geometry = GeometryBuilder.build(points, width = 100f, height = 100f)
-
-        assertNotNull(geometry)
+        val geometry = assertNotNull(GeometryBuilder.build(points, width = 100f, height = 100f))
         val connection = geometry.connections.single()
         assertEquals(ConnectionStyle.CIRCLE_MARKERS, connection.style)
     }
