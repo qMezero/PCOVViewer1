@@ -12,6 +12,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.example.pcovviewer.PcoParser.PcoPoint
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.hypot
 
 object PdfExporter {
 
@@ -125,8 +126,23 @@ object PdfExporter {
             val dashGap = (
                 DrawingStyle.BASE_DASH_GAP * PDF_DASH_GAP_MULTIPLIER * clampedScale
             ).coerceAtLeast(1f)
+            val circleMarkerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = DrawingStyle.LINE_COLOR
+                style = Paint.Style.FILL
+            }
+            val circleMarkerRadius = DrawingStyle.BASE_CIRCLE_MARKER_RADIUS * clampedScale * PDF_POINT_RADIUS_MULTIPLIER
+            val circleMarkerSpacing = DrawingStyle.BASE_CIRCLE_MARKER_SPACING * clampedScale
 
-            drawConnections(canvas, geometry.connections, linePaint, dashInterval, dashGap)
+            drawConnections(
+                canvas = canvas,
+                connections = geometry.connections,
+                paint = linePaint,
+                dashInterval = dashInterval,
+                dashGap = dashGap,
+                circleMarkerPaint = circleMarkerPaint,
+                circleMarkerRadius = circleMarkerRadius,
+                circleMarkerSpacing = circleMarkerSpacing
+            )
             drawPoints(
                 canvas = canvas,
                 points = geometry.points,
@@ -237,7 +253,10 @@ object PdfExporter {
         connections: List<Connection>,
         paint: Paint,
         dashInterval: Float,
-        dashGap: Float
+        dashGap: Float,
+        circleMarkerPaint: Paint,
+        circleMarkerRadius: Float,
+        circleMarkerSpacing: Float
     ) {
         if (connections.isEmpty()) {
             return
@@ -248,6 +267,7 @@ object PdfExporter {
         val dottedPath = Path()
         var hasSolid = false
         var hasDotted = false
+        val circleConnections = mutableListOf<Connection>()
 
         connections.forEach { connection ->
             val start = connection.start
@@ -264,6 +284,13 @@ object PdfExporter {
                     dottedPath.lineTo(end.x, end.y)
                     hasDotted = true
                 }
+
+                ConnectionStyle.CIRCLE_MARKERS -> {
+                    solidPath.moveTo(start.x, start.y)
+                    solidPath.lineTo(end.x, end.y)
+                    hasSolid = true
+                    circleConnections += connection
+                }
             }
         }
 
@@ -276,6 +303,52 @@ object PdfExporter {
             paint.pathEffect = DashPathEffect(floatArrayOf(dashInterval, dashGap), 0f)
             canvas.drawPath(dottedPath, paint)
             paint.pathEffect = null
+        }
+
+        if (circleConnections.isNotEmpty() && circleMarkerRadius > 0f && circleMarkerSpacing > 0f) {
+            circleConnections.forEach { connection ->
+                drawCircleMarkers(
+                    canvas = canvas,
+                    startX = connection.start.x,
+                    startY = connection.start.y,
+                    endX = connection.end.x,
+                    endY = connection.end.y,
+                    spacing = circleMarkerSpacing,
+                    radius = circleMarkerRadius,
+                    paint = circleMarkerPaint
+                )
+            }
+        }
+    }
+
+    private fun drawCircleMarkers(
+        canvas: Canvas,
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        spacing: Float,
+        radius: Float,
+        paint: Paint
+    ) {
+        if (spacing <= 0f || radius <= 0f) {
+            return
+        }
+
+        val dx = endX - startX
+        val dy = endY - startY
+        val length = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        if (length <= 0f) {
+            return
+        }
+
+        var distance = spacing
+        while (distance < length) {
+            val fraction = distance / length
+            val x = startX + dx * fraction
+            val y = startY + dy * fraction
+            canvas.drawCircle(x, y, radius, paint)
+            distance += spacing
         }
     }
 
