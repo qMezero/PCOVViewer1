@@ -13,7 +13,7 @@ data class CodeInfo(
 ) {
     companion object {
         fun parse(rawCode: String): CodeInfo {
-            val trimmed = rawCode.trim()
+            val trimmed = sanitizeConnectionCode(rawCode)
             if (trimmed.isEmpty()) {
                 return CodeInfo(baseCode = "", connectsToPrevious = false, connectionTargets = emptyList())
             }

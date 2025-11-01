@@ -42,4 +42,16 @@ class GeometryBuilderTest {
         val connection = geometry.connections.single()
         assertEquals(ConnectionStyle.SOLID, connection.style)
     }
+
+    @Test
+    fun `connection between 51 codes with spaces uses circle markers`() {
+        val points = listOf(
+            PcoPoint(number = 200, code = "51 ..", x = 0f, y = 0f, z = null),
+            PcoPoint(number = 201, code = "51 .. 200", x = 10f, y = 0f, z = null)
+        )
+
+        val geometry = assertNotNull(GeometryBuilder.build(points, width = 100f, height = 100f))
+        val connection = geometry.connections.single()
+        assertEquals(ConnectionStyle.CIRCLE_MARKERS, connection.style)
+    }
 }
