@@ -27,41 +27,31 @@ object PointLabelFormatter {
 
 internal fun normalizeConnectionCode(rawCode: String): String {
     val trimmed = rawCode.trim()
-    if (trimmed.isEmpty() || trimmed.contains("..")) {
+    if (trimmed.isEmpty()) {
         return trimmed
     }
 
-    val leadingDigits = buildString {
-        for (character in trimmed) {
-            if (character.isDigit()) {
-                append(character)
-            } else {
-                break
-            }
-        }
-    }
-
-    if (leadingDigits.isEmpty()) {
+    val firstDotIndex = trimmed.indexOf('.')
+    if (firstDotIndex < 0) {
         return trimmed
     }
 
-    val remainder = trimmed.substring(leadingDigits.length)
-    if (!remainder.startsWith(".")) {
+    if (firstDotIndex == 0) {
         return trimmed
     }
 
-    val suffix = remainder.drop(1)
-    if (suffix.isEmpty()) {
-        return "$leadingDigits.."
-    }
-
-    if (!suffix.first().isDigit()) {
+    if (firstDotIndex + 1 < trimmed.length && trimmed[firstDotIndex + 1] == '.') {
         return trimmed
     }
 
-    return buildString {
-        append(leadingDigits)
-        append("..")
-        append(suffix)
+    val hasNumericPrefix = trimmed.substring(0, firstDotIndex).all { it.isDigit() }
+    if (!hasNumericPrefix) {
+        return trimmed
+    }
+
+    return buildString(trimmed.length + 1) {
+        append(trimmed.substring(0, firstDotIndex + 1))
+        append('.')
+        append(trimmed.substring(firstDotIndex + 1))
     }
 }
