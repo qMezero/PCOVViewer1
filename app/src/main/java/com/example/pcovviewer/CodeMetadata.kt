@@ -85,7 +85,7 @@ object CodeRules {
         if (baseCode.isEmpty()) {
             return 1f
         }
-        return if (smallIconBaseCodes.contains(baseCode)) 0.25f else 1f
+        return if (smallIconBaseCodes.contains(baseCode)) 0.125f else 1f
     }
 
     fun connectionStyleForManualTargets(
