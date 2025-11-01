@@ -22,6 +22,8 @@ object PdfExporter {
     private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f / 3f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 0f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
+    private const val PDF_DASH_INTERVAL_MULTIPLIER = 0.4f
+    private const val PDF_DASH_GAP_MULTIPLIER = 0.4f
 
     data class ExportResult(val uri: Uri, val description: String)
 
@@ -117,8 +119,12 @@ object PdfExporter {
                 this.strokeWidth = strokeWidth
             }
 
-            val dashInterval = (DrawingStyle.BASE_DASH_INTERVAL * clampedScale).coerceAtLeast(1f)
-            val dashGap = (DrawingStyle.BASE_DASH_GAP * clampedScale).coerceAtLeast(1f)
+            val dashInterval = (
+                DrawingStyle.BASE_DASH_INTERVAL * PDF_DASH_INTERVAL_MULTIPLIER * clampedScale
+            ).coerceAtLeast(1f)
+            val dashGap = (
+                DrawingStyle.BASE_DASH_GAP * PDF_DASH_GAP_MULTIPLIER * clampedScale
+            ).coerceAtLeast(1f)
 
             drawConnections(canvas, geometry.connections, linePaint, dashInterval, dashGap)
             drawPoints(
