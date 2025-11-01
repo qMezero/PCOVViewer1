@@ -14,7 +14,7 @@ object DrawingStyle {
 
     const val BASE_POINT_RADIUS: Float = 1f
     const val BASE_STROKE_WIDTH: Float = 1f
-    const val BASE_TEXT_SIZE: Float = 36f
+    const val BASE_TEXT_SIZE: Float = 18f
     const val BASE_LABEL_OFFSET_X: Float = 6f
     const val BASE_LABEL_OFFSET_Y: Float = 6f
     const val BASE_LINE_SPACING: Float = 2f
