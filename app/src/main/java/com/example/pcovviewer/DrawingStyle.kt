@@ -21,8 +21,6 @@ object DrawingStyle {
     const val BASE_DASH_INTERVAL: Float = 4.5f
     const val BASE_DASH_GAP: Float = 6f
 
-    const val CODE_DOUBLE_DOT_SCALE: Float = 0.8f
-
     const val BASE_CIRCLE_MARKER_RADIUS: Float = 4f
     const val BASE_CIRCLE_MARKER_SPACING: Float = 28f
     const val CIRCLE_MARKER_FILL_COLOR: Int = Color.WHITE

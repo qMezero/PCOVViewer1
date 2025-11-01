@@ -238,35 +238,8 @@ class DrawingView @JvmOverloads constructor(
         canvas: Canvas
     ) {
         for ((index, line) in lines.withIndex()) {
-            val preparedLine = prepareLabelLine(line)
-            canvas.drawText(
-                preparedLine,
-                0,
-                preparedLine.length,
-                x,
-                y + index * (paint.textSize + lineSpacing),
-                paint
-            )
+            canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
         }
-    }
-
-    private fun prepareLabelLine(line: String): CharSequence {
-        if (!line.contains("..")) {
-            return line
-        }
-
-        val spannable = android.text.SpannableString(line)
-        var startIndex = line.indexOf("..")
-        while (startIndex >= 0) {
-            spannable.setSpan(
-                android.text.style.ScaleXSpan(DrawingStyle.CODE_DOUBLE_DOT_SCALE),
-                startIndex,
-                startIndex + 2,
-                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            startIndex = line.indexOf("..", startIndex + 1)
-        }
-        return spannable
     }
 
     private fun drawCircleMarkers(
