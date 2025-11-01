@@ -43,7 +43,7 @@ object PdfExporter {
 
             val textPaint = Paint().apply {
                 color = Color.DKGRAY
-                textSize = 5f / 3f
+                textSize = 5f
                 isAntiAlias = true
                 isLinearText = true
                 isSubpixelText = true
@@ -122,7 +122,7 @@ object PdfExporter {
                 canvas.drawText(
                     line,
                     scaledPoint.x + 2f,
-                    scaledPoint.y - 2f + index * (textPaint.textSize + 0.25f),
+                    scaledPoint.y - 2f + index * (textPaint.textSize + 0.75f),
                     textPaint
                 )
             }
