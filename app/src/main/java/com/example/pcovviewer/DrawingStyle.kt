@@ -25,23 +25,21 @@ object DrawingStyle {
     const val BASE_CIRCLE_MARKER_SPACING: Float = 28f
 
     const val BASE_SPECIAL_POINT_RADIUS: Float = 12f
-    const val BASE_SPECIAL_POINT_STROKE_WIDTH: Float = 1.5f
+    const val BASE_SPECIAL_POINT_STROKE_WIDTH: Float = 1.5f / 4f
     const val SPECIAL_POINT_FILL_COLOR: Int = Color.WHITE
     const val SPECIAL_POINT_STROKE_COLOR: Int = Color.BLACK
     const val SPECIAL_POINT_TEXT_COLOR: Int = Color.BLACK
     const val SPECIAL_POINT_TEXT_SCALE: Float = 2.2f
-    private const val SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER: Float = 1.7f
+    private const val SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER: Float = 0.9f
 
     val SPECIAL_POINT_TYPEFACE: Typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
 
     private val specialPointLetters: Map<String, String> = mapOf(
         "40" to "К",
-        "42" to "в"
+        "42" to "В"
     )
 
-    private val specialPointLetterVerticalOffsetFactors: Map<String, Float> = mapOf(
-        "в" to 0.08f
-    )
+    private val specialPointLetterVerticalOffsetFactors: Map<String, Float> = emptyMap()
 
     val SPECIAL_POINT_CODES: Set<String> = specialPointLetters.keys
 
@@ -63,15 +61,17 @@ object DrawingStyle {
     fun adjustSpecialPointTextSize(
         paint: Paint,
         letter: String,
-        radius: Float
+        radius: Float,
+        strokeWidth: Float
     ) {
+        val effectiveRadius = (radius - strokeWidth / 2f).coerceAtLeast(0f)
         if (letter.isEmpty()) {
-            paint.textSize = radius * SPECIAL_POINT_TEXT_SCALE
+            paint.textSize = effectiveRadius * SPECIAL_POINT_TEXT_SCALE
             return
         }
 
         val bounds = Rect()
-        val initialTextSize = radius * SPECIAL_POINT_TEXT_SCALE
+        val initialTextSize = effectiveRadius * SPECIAL_POINT_TEXT_SCALE
         paint.textSize = initialTextSize
         paint.getTextBounds(letter, 0, letter.length, bounds)
 
@@ -80,7 +80,7 @@ object DrawingStyle {
             return
         }
 
-        val targetDimension = radius * SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER
+        val targetDimension = effectiveRadius * 2f * SPECIAL_POINT_TEXT_TARGET_DIAMETER_MULTIPLIER
         val scale = targetDimension / maxDimension
         paint.textSize = initialTextSize * scale
     }
