@@ -19,7 +19,7 @@ object PdfExporter {
     private var lastPdfUri: Uri? = null
 
     private const val PDF_POINT_RADIUS_MULTIPLIER = 0.25f
-    private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f
+    private const val PDF_TEXT_SIZE_MULTIPLIER = 0.4f / 3f
     private const val PDF_DIGIT_EXTRA_SPACING_PX = 1f
     private const val PDF_STROKE_WIDTH_MULTIPLIER = 0.5f
 
