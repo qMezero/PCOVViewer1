@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.net.Uri
 import com.example.pcovviewer.PcoParser.PcoPoint
@@ -54,7 +55,11 @@ object PdfExporter {
                 isAntiAlias = true
             }
 
-            drawConnections(canvas, geometry.connections, linePaint)
+            val dashedLinePaint = Paint(linePaint).apply {
+                pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
+            }
+
+            drawConnections(canvas, geometry.connections, linePaint, dashedLinePaint)
             drawPoints(canvas, geometry.points, pointPaint, textPaint)
 
             pdfDocument.finishPage(page)
@@ -90,11 +95,13 @@ object PdfExporter {
 
     private fun drawConnections(
         canvas: Canvas,
-        connections: List<Pair<ScaledPoint, ScaledPoint>>,
-        paint: Paint
+        connections: List<ScaledConnection>,
+        solidPaint: Paint,
+        dashedPaint: Paint
     ) {
-        connections.forEach { (start, end) ->
-            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+        connections.forEach { connection ->
+            val paint = if (connection.style == ConnectionStyle.DASHED) dashedPaint else solidPaint
+            canvas.drawLine(connection.start.x, connection.start.y, connection.end.x, connection.end.y, paint)
         }
     }
 
@@ -105,7 +112,9 @@ object PdfExporter {
         textPaint: Paint
     ) {
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 1f, pointPaint)
+            val radiusScale = CodeRules.pointRadiusScale(scaledPoint.point)
+            val radius = 1f * radiusScale
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, radius, pointPaint)
 
             val label = "${scaledPoint.point.number}\n${scaledPoint.point.displayCode}"
             val lines = label.split("\n")

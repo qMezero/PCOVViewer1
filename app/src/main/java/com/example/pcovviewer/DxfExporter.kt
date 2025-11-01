@@ -68,7 +68,8 @@ object DxfExporter {
         }
 
         visiblePoints.forEach { point ->
-            builder.addPointCircle(point, pointRadius)
+            val radiusScale = CodeRules.pointRadiusScale(point)
+            builder.addPointCircle(point, pointRadius * radiusScale)
         }
 
         visiblePoints.forEach { point ->

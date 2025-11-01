@@ -9,7 +9,7 @@ object PolylineBuilder {
 
     fun buildChains(
         points: List<PcoParser.PcoPoint>,
-        connections: List<Pair<PcoParser.PcoPoint, PcoParser.PcoPoint>>
+        connections: List<Connection>
     ): List<PolylineChain> {
         if (points.isEmpty() || connections.isEmpty()) {
             return emptyList()
@@ -23,8 +23,8 @@ object PolylineBuilder {
             adjacency.getOrPut(second) { mutableSetOf() }.add(first)
         }
 
-        connections.forEach { (start, end) ->
-            addEdge(start.number, end.number)
+        connections.forEach { connection ->
+            addEdge(connection.start.number, connection.end.number)
         }
 
         if (adjacency.isEmpty()) {
@@ -75,9 +75,9 @@ object PolylineBuilder {
             }
         }
 
-        connections.forEach { (rawStart, rawEnd) ->
-            val start = rawStart.number
-            val end = rawEnd.number
+        connections.forEach { connection ->
+            val start = connection.start.number
+            val end = connection.end.number
             val key = orderedConnectionKey(start, end)
             if (visitedEdges.contains(key)) {
                 return@forEach
