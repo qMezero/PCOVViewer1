@@ -95,7 +95,7 @@ class DrawingView @JvmOverloads constructor(
         textPaint.textSize = adjustedTextSize
         dashedLinePaint.strokeWidth = adjustedStrokeWidth
         val dashLength = 12f / scaleFactor
-        dashedLinePaint.pathEffect = DashPathEffect(floatArrayOf(dashLength, dashLength), 0f)
+        dashedLinePaint.pathEffect = DashPathEffect(floatArrayOf(dashLength / 2f, dashLength), 0f)
 
         canvas.save()
         canvas.translate(panX, panY)

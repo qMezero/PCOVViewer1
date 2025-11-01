@@ -43,7 +43,7 @@ object PdfExporter {
 
             val textPaint = Paint().apply {
                 color = Color.DKGRAY
-                textSize = 10f
+                textSize = 5f
                 isAntiAlias = true
                 isLinearText = true
                 isSubpixelText = true
@@ -56,7 +56,7 @@ object PdfExporter {
             }
 
             val dashedLinePaint = Paint(linePaint).apply {
-                pathEffect = DashPathEffect(floatArrayOf(4f, 4f), 0f)
+                pathEffect = DashPathEffect(floatArrayOf(2f, 4f), 0f)
             }
 
             drawConnections(canvas, geometry.connections, linePaint, dashedLinePaint)
@@ -121,8 +121,8 @@ object PdfExporter {
             lines.forEachIndexed { index, line ->
                 canvas.drawText(
                     line,
-                    scaledPoint.x + 4f,
-                    scaledPoint.y - 4f + index * (textPaint.textSize + 1.5f),
+                    scaledPoint.x + 2f,
+                    scaledPoint.y - 2f + index * (textPaint.textSize + 0.75f),
                     textPaint
                 )
             }
