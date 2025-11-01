@@ -38,7 +38,8 @@ object ConnectionBuilder {
 
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    val style = CodeRules.connectionStyleForManualTargets(current, target)
+                    val baseStyle = CodeRules.connectionStyleForManualTargets(current, target)
+                    val style = CodeRules.finalizedConnectionStyle(baseStyle, current, target)
                     addConnection(current, target, style)
                 }
             }
