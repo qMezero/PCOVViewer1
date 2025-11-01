@@ -32,8 +32,8 @@ class DrawingView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    private val basePointRadius = 4f
-    private val baseStrokeWidth = 2f
+    private val basePointRadius = 2f
+    private val baseStrokeWidth = 1f
     private val baseTextSize = 18f
     private val baseLabelOffsetX = 6f
     private val baseLabelOffsetY = 6f
