@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import kotlin.math.hypot
 
 class DrawingView @JvmOverloads constructor(
     context: Context,
@@ -54,6 +55,12 @@ class DrawingView @JvmOverloads constructor(
         style = Paint.Style.STROKE
     }
 
+    private val circleMarkerPaint = Paint().apply {
+        color = DrawingStyle.LINE_COLOR
+        isAntiAlias = true
+        style = Paint.Style.FILL
+    }
+
     private val textPaint = Paint().apply {
         color = DrawingStyle.resolvePointLabelColor(context)
         isAntiAlias = true
@@ -70,6 +77,8 @@ class DrawingView @JvmOverloads constructor(
     private val baseSpecialPointRadius = DrawingStyle.BASE_SPECIAL_POINT_RADIUS
     private val baseSpecialPointStrokeWidth = DrawingStyle.BASE_SPECIAL_POINT_STROKE_WIDTH
     private val specialPointTextScale = DrawingStyle.SPECIAL_POINT_TEXT_SCALE
+    private val baseCircleMarkerRadius = DrawingStyle.BASE_CIRCLE_MARKER_RADIUS
+    private val baseCircleMarkerSpacing = DrawingStyle.BASE_CIRCLE_MARKER_SPACING
 
     private var showPointNumbers = true
     private var showPointCodes = true
@@ -127,6 +136,8 @@ class DrawingView @JvmOverloads constructor(
         val labelOffsetX = baseLabelOffsetX / scaleFactor
         val labelOffsetY = baseLabelOffsetY / scaleFactor
         val lineSpacing = baseLineSpacing / scaleFactor
+        val circleMarkerRadius = baseCircleMarkerRadius / scaleFactor
+        val circleMarkerSpacing = baseCircleMarkerSpacing / scaleFactor
 
         solidLinePaint.strokeWidth = adjustedStrokeWidth
         solidLinePaint.pathEffect = null
@@ -145,13 +156,31 @@ class DrawingView @JvmOverloads constructor(
         canvas.scale(scaleFactor, scaleFactor)
 
         geometry.connections.forEach { connection ->
-            val paint = when (connection.style) {
-                ConnectionStyle.SOLID -> solidLinePaint
-                ConnectionStyle.DOTTED -> dottedLinePaint
-            }
             val start = connection.start
             val end = connection.end
-            canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+            when (connection.style) {
+                ConnectionStyle.SOLID -> {
+                    canvas.drawLine(start.x, start.y, end.x, end.y, solidLinePaint)
+                }
+
+                ConnectionStyle.DOTTED -> {
+                    canvas.drawLine(start.x, start.y, end.x, end.y, dottedLinePaint)
+                }
+
+                ConnectionStyle.CIRCLE_MARKERS -> {
+                    canvas.drawLine(start.x, start.y, end.x, end.y, solidLinePaint)
+                    drawCircleMarkers(
+                        canvas = canvas,
+                        startX = start.x,
+                        startY = start.y,
+                        endX = end.x,
+                        endY = end.y,
+                        spacing = circleMarkerSpacing,
+                        radius = circleMarkerRadius,
+                        paint = circleMarkerPaint
+                    )
+                }
+            }
         }
 
         geometry.points.forEach { scaledPoint ->
@@ -199,6 +228,37 @@ class DrawingView @JvmOverloads constructor(
     ) {
         for ((index, line) in lines.withIndex()) {
             canvas.drawText(line, x, y + index * (paint.textSize + lineSpacing), paint)
+        }
+    }
+
+    private fun drawCircleMarkers(
+        canvas: Canvas,
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        spacing: Float,
+        radius: Float,
+        paint: Paint
+    ) {
+        if (spacing <= 0f || radius <= 0f) {
+            return
+        }
+
+        val dx = endX - startX
+        val dy = endY - startY
+        val length = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        if (length <= 0f) {
+            return
+        }
+
+        var distance = spacing
+        while (distance < length) {
+            val fraction = distance / length
+            val x = startX + dx * fraction
+            val y = startY + dy * fraction
+            canvas.drawCircle(x, y, radius, paint)
+            distance += spacing
         }
     }
 

@@ -15,7 +15,8 @@ data class ScaledPoint(
 
 enum class ConnectionStyle {
     SOLID,
-    DOTTED
+    DOTTED,
+    CIRCLE_MARKERS
 }
 
 data class Connection(
@@ -94,7 +95,7 @@ object GeometryBuilder {
 
             val key = orderedConnectionKey(from.point.number, to.point.number)
             val existing = deduplicationMap[key]
-            if (existing == null || (existing.style == ConnectionStyle.SOLID && style == ConnectionStyle.DOTTED)) {
+            if (existing == null || connectionStylePriority(style) > connectionStylePriority(existing.style)) {
                 deduplicationMap[key] = Connection(start = from, end = to, style = style)
             }
         }
@@ -105,10 +106,10 @@ object GeometryBuilder {
             val previous = pointsByNumber[number - 1]
             val info = current.point.codeInfo
             if (previous != null && info.connectsToPrevious && info.connectionTargets.isEmpty()) {
-                val style = if (isDottedPreviousConnection(current.point)) {
-                    ConnectionStyle.DOTTED
-                } else {
-                    ConnectionStyle.SOLID
+                val style = when {
+                    isCircleMarkerFenceConnection(previous.point, current.point) -> ConnectionStyle.CIRCLE_MARKERS
+                    isDottedPreviousConnection(current.point) -> ConnectionStyle.DOTTED
+                    else -> ConnectionStyle.SOLID
                 }
                 addConnection(previous, current, style)
             }
@@ -116,10 +117,10 @@ object GeometryBuilder {
             info.connectionTargets.forEach { targetNumber ->
                 val target = pointsByNumber[targetNumber]
                 if (target != null) {
-                    val style = if (info.baseCode == "30" || info.baseCode == "992") {
-                        ConnectionStyle.DOTTED
-                    } else {
-                        ConnectionStyle.SOLID
+                    val style = when {
+                        isCircleMarkerFenceConnection(current.point, target.point) -> ConnectionStyle.CIRCLE_MARKERS
+                        info.baseCode == "30" || info.baseCode == "992" -> ConnectionStyle.DOTTED
+                        else -> ConnectionStyle.SOLID
                     }
                     addConnection(current, target, style)
                 }
@@ -167,6 +168,27 @@ object GeometryBuilder {
 
         return lowerPointNames.any { candidate -> candidate.equals(suffix, ignoreCase = true) }
     }
+}
+
+private fun connectionStylePriority(style: ConnectionStyle): Int = when (style) {
+    ConnectionStyle.SOLID -> 0
+    ConnectionStyle.DOTTED -> 1
+    ConnectionStyle.CIRCLE_MARKERS -> 2
+}
+
+private fun isCircleMarkerFenceConnection(first: PcoParser.PcoPoint, second: PcoParser.PcoPoint): Boolean {
+    if (first.codeInfo.baseCode != "51" || second.codeInfo.baseCode != "51") {
+        return false
+    }
+
+    val normalizedFirst = normalizeConnectionCode(first.code).uppercase()
+    val normalizedSecond = normalizeConnectionCode(second.code).uppercase()
+    if (normalizedFirst.isEmpty() || normalizedSecond.isEmpty()) {
+        return false
+    }
+
+    return normalizedFirst == "51.." && normalizedSecond == "51..N" ||
+        normalizedFirst == "51..N" && normalizedSecond == "51.."
 }
 
 private fun isDottedPreviousConnection(point: PcoParser.PcoPoint): Boolean {
