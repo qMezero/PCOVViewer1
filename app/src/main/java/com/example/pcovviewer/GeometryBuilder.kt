@@ -187,8 +187,28 @@ private fun isCircleMarkerFenceConnection(first: PcoParser.PcoPoint, second: Pco
         return false
     }
 
-    return normalizedFirst == "51.." && normalizedSecond == "51..N" ||
-        normalizedFirst == "51..N" && normalizedSecond == "51.."
+    val firstIsBare = normalizedFirst == CIRCLE_MARKER_FENCE_BARE_CODE
+    val secondIsBare = normalizedSecond == CIRCLE_MARKER_FENCE_BARE_CODE
+
+    val firstIsTargeted = normalizedFirst.isCircleMarkerFenceTarget()
+    val secondIsTargeted = normalizedSecond.isCircleMarkerFenceTarget()
+
+    return firstIsBare && secondIsTargeted || secondIsBare && firstIsTargeted
+}
+
+private const val CIRCLE_MARKER_FENCE_BARE_CODE: String = "51.."
+
+private fun String.isCircleMarkerFenceTarget(): Boolean {
+    if (!startsWith(CIRCLE_MARKER_FENCE_BARE_CODE)) {
+        return false
+    }
+
+    if (length <= CIRCLE_MARKER_FENCE_BARE_CODE.length) {
+        return false
+    }
+
+    val suffix = substring(CIRCLE_MARKER_FENCE_BARE_CODE.length)
+    return suffix.all { it.isDigit() }
 }
 
 private fun isDottedPreviousConnection(point: PcoParser.PcoPoint): Boolean {
