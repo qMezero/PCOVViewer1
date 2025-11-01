@@ -36,7 +36,7 @@ object PdfExporter {
             val pointPaint = Paint().apply {
                 color = Color.BLACK
                 style = Paint.Style.FILL
-                strokeWidth = 1.5f
+                strokeWidth = 0.5f
                 isAntiAlias = true
             }
 
@@ -50,7 +50,7 @@ object PdfExporter {
 
             val linePaint = Paint().apply {
                 color = Color.BLUE
-                strokeWidth = 1.5f
+                strokeWidth = 0.5f
                 isAntiAlias = true
             }
 
@@ -105,7 +105,7 @@ object PdfExporter {
         textPaint: Paint
     ) {
         points.forEach { scaledPoint ->
-            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 3f, pointPaint)
+            canvas.drawCircle(scaledPoint.x, scaledPoint.y, 1f, pointPaint)
 
             val label = "${scaledPoint.point.number}\n${scaledPoint.point.displayCode}"
             val lines = label.split("\n")
