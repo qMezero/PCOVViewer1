@@ -29,4 +29,10 @@ class PointLabelFormatterTest {
     fun `keeps codes that start with double dots unchanged`() {
         assertEquals("..306", normalizeConnectionCode("..306"))
     }
+
+    @Test
+    fun `removes spaces around connection separators`() {
+        assertEquals("51..2", normalizeConnectionCode("51 .. 2"))
+        assertEquals("51..", normalizeConnectionCode("51 .."))
+    }
 }

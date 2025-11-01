@@ -25,8 +25,30 @@ object PointLabelFormatter {
     }
 }
 
-internal fun normalizeConnectionCode(rawCode: String): String {
+internal fun sanitizeConnectionCode(rawCode: String): String {
     val trimmed = rawCode.trim()
+    if (trimmed.isEmpty()) {
+        return trimmed
+    }
+
+    var lastAppended: Char? = null
+    return buildString(trimmed.length) {
+        trimmed.forEachIndexed { index, ch ->
+            if (ch.isWhitespace()) {
+                val next = trimmed.getOrNull(index + 1)
+                if (lastAppended == '.' || next == '.') {
+                    return@forEachIndexed
+                }
+            }
+
+            append(ch)
+            lastAppended = ch
+        }
+    }
+}
+
+internal fun normalizeConnectionCode(rawCode: String): String {
+    val trimmed = sanitizeConnectionCode(rawCode)
     if (trimmed.isEmpty()) {
         return trimmed
     }
