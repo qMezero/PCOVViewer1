@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.example.pcovviewer.PcoParser.PcoPoint
+import com.example.pcovviewer.normalizeConnectionCode
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -55,7 +56,7 @@ object DwgExporter {
                     labels += point.number.toString()
                 }
                 if (showPointCodes && point.code.isNotBlank()) {
-                    labels += point.code.trim()
+                    labels += normalizeConnectionCode(point.code)
                 }
                 val labelText = labels.joinToString(separator = " ") { it.replace('\n', ' ') }
                 if (labelText.isNotEmpty()) {
