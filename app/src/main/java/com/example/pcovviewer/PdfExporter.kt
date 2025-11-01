@@ -408,7 +408,8 @@ object PdfExporter {
                     DrawingStyle.adjustSpecialPointTextSize(
                         paint = specialPointTextPaint,
                         letter = letter,
-                        radius = radius
+                        radius = radius,
+                        strokeWidth = specialPointStrokePaint.strokeWidth
                     )
                     val metrics = specialPointTextPaint.fontMetrics
                     val textY = scaledPoint.y - (metrics.ascent + metrics.descent) / 2f
